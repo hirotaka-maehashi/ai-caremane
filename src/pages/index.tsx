@@ -6,6 +6,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const handleSend = async () => {
+    console.log('handleSend 実行！'); //
     if (!input.trim()) return;
     setLoading(true);
     try {
@@ -14,9 +15,10 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),
       });
-
       const data = await res.json();
+      console.log('APIレスポンス:', data); //
       setReply(data.reply);
+      setInput('');
     } catch (err) {
       setReply('エラーが発生しました');
     }
@@ -30,6 +32,13 @@ export default function Home() {
         rows={4}
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          console.log('キー押下:', e.key);
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
         placeholder="AIに話しかけてみよう（例：〇〇さんの記録を作成して）"
         style={{ width: '100%', marginBottom: 10 }}
       />
