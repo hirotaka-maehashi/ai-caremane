@@ -5,6 +5,7 @@ export default function Home() {
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
   const [industry, setIndustry] = useState('介護');
+  const [companyName, setCompanyName] = useState('');
   const isComposing = useRef(false);
 
   const industryPlaceholders: Record<string, string> = {
@@ -15,7 +16,6 @@ export default function Home() {
     '教育': 'AIに話しかけてみよう（例：生徒の学習記録を作成して）',
     'カスタマーサポート': 'AIに話しかけてみよう（例：お客様対応の記録を作成して）',
   };
-  
 
   useEffect(() => {
     setInput('');
@@ -41,7 +41,22 @@ export default function Home() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>AIケアマネくん📱</h1>
+      <h1>AI Partner 🤖</h1>
+      <p style={{ fontStyle: 'italic', marginBottom: 10 }}>
+        {companyName ? `${companyName} with AI Partner` : 'AI Partner 導入システム'}<br />
+        <span style={{ fontWeight: 'bold', color: '#ff3366' }}>Powered by ChatGPT</span>
+      </p>
+
+      <div style={{ marginBottom: 10 }}>
+        <label>導入企業名：</label>
+        <input
+          type="text"
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
+          placeholder="例：株式会社〇〇"
+          style={{ marginLeft: 10, width: '50%' }}
+        />
+      </div>
 
       <div style={{ marginBottom: 10 }}>
         <label>業種を選択：</label>
@@ -78,11 +93,9 @@ export default function Home() {
         placeholder={industryPlaceholders[industry] || 'AIに話しかけてみよう'}
         style={{ width: '100%', marginBottom: 10 }}
       />
-
       <button onClick={handleSend} disabled={loading}>
         {loading ? '送信中...' : '送信'}
       </button>
-
       <div style={{ marginTop: 20 }}>
         <strong>AIの返答：</strong>
         <p>{reply}</p>
