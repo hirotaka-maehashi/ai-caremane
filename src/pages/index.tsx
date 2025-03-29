@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function Home() {
   const [input, setInput] = useState('');
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
+  const isComposing = useRef(false);
 
   const handleSend = async () => {
-    console.log('handleSend 実行！'); //
     if (!input.trim()) return;
     setLoading(true);
     try {
@@ -16,7 +16,6 @@ export default function Home() {
         body: JSON.stringify({ message: input }),
       });
       const data = await res.json();
-      console.log('APIレスポンス:', data); //
       setReply(data.reply);
       setInput('');
     } catch (err) {
@@ -27,14 +26,19 @@ export default function Home() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>AIケアマネくん🧠</h1>
+      <h1>AIケアマネくん📱</h1>
       <textarea
         rows={4}
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onCompositionStart={() => {
+          isComposing.current = true;
+        }}
+        onCompositionEnd={() => {
+          isComposing.current = false;
+        }}
         onKeyDown={(e) => {
-          console.log('キー押下:', e.key);
-          if (e.key === 'Enter' && !e.shiftKey) {
+          if (e.key === 'Enter' && !e.shiftKey && !isComposing.current) {
             e.preventDefault();
             handleSend();
           }
