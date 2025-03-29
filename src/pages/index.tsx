@@ -7,7 +7,7 @@ export default function Home() {
   const [industry, setIndustry] = useState('介護');
   const isComposing = useRef(false);
 
-  const industryPlaceholders = {
+  const industryPlaceholders: Record<string, string> = {
     '介護': 'AIに話しかけてみよう（例：〇〇さんの記録を作成して）',
     '福祉': 'AIに話しかけてみよう（例：支援計画を作成して）',
     '営業': 'AIに話しかけてみよう（例：商談記録を作成して）',
@@ -15,6 +15,7 @@ export default function Home() {
     '教育': 'AIに話しかけてみよう（例：生徒の学習記録を作成して）',
     'カスタマーサポート': 'AIに話しかけてみよう（例：お客様対応の記録を作成して）',
   };
+  
 
   useEffect(() => {
     setInput('');
