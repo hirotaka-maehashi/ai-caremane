@@ -41,10 +41,10 @@ export default function Home() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>AI Partner 🤖</h1>
-      <p style={{ fontStyle: 'italic', marginBottom: 10 }}>
-        {companyName ? `${companyName} with AI Partner` : 'AI Partner 導入システム'}<br />
-        <span style={{ fontWeight: 'bold', color: '#ff3366' }}>Powered by ChatGPT</span>
+      <p style={{ fontStyle: 'italic', marginBottom: 10, fontSize: '1.2em' }}>
+        {companyName && <span style={{ fontWeight: 'bold' }}>{companyName}</span>} with AI Partner
+        <br />
+        <span style={{ fontWeight: 'bold' }}>Powered by ChatGPT</span>
       </p>
 
       <div style={{ marginBottom: 10 }}>
