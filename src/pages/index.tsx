@@ -62,7 +62,7 @@ export default function Home() {
       setReply(data.reply);
 
       setHistoryGroups((prev) => {
-        const newEntry = { user: uploadedFileText ? '(アップロードファイルあり)' : input, ai: data.reply };
+        const newEntry = { user: uploadedFileText ? `${input}（ファイル: ${uploadedFileName}）` : input, ai: data.reply };
         if (selectedTopicIndex === null) {
           const newGroup = { topic: input || uploadedFileName || '新しいトピック', history: [newEntry] };
           const newGroups = [...prev, newGroup];
@@ -90,7 +90,6 @@ export default function Home() {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (!file) return;
-
     setUploadedFileName(file.name);
 
     if (file.type === 'application/pdf') {
@@ -130,17 +129,38 @@ export default function Home() {
     }
   };
 
+  const handleNewTopic = () => {
+    const newGroup = { topic: '新しいトピック', history: [] };
+    const updatedGroups = [...historyGroups, newGroup];
+    setHistoryGroups(updatedGroups);
+    setSelectedTopicIndex(updatedGroups.length - 1);
+    setInput('');
+  };
+
+  const handleRenameTopic = (index: number, newTitle: string) => {
+    const updated = [...historyGroups];
+    updated[index].topic = newTitle;
+    setHistoryGroups(updated);
+  };
+
+  const handleDeleteTopic = (index: number) => {
+    const updated = [...historyGroups];
+    updated.splice(index, 1);
+    setHistoryGroups(updated);
+    if (selectedTopicIndex === index) {
+      setSelectedTopicIndex(null);
+    } else if (selectedTopicIndex !== null && selectedTopicIndex > index) {
+      setSelectedTopicIndex(selectedTopicIndex - 1);
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <div style={{ width: 250, backgroundColor: '#f4f4f4', padding: 10 }}>
-        <h3>🧠 トピック一覧</h3>
-        <button onClick={() => {
-          const newGroup = { topic: '新しいトピック', history: [] };
-          const updatedGroups = [...historyGroups, newGroup];
-          setHistoryGroups(updatedGroups);
-          setSelectedTopicIndex(updatedGroups.length - 1);
-          setInput('');
-        }}>＋ 新しいトピック</button>
+    <div className="container" style={{ display: 'flex', height: '100vh' }}>
+  {/* サイドバー */}
+  <div className="sidebar" style={{ width: 250, backgroundColor: '#f4f4f4', padding: 10 }}>
+
+        <h3>👣 トピック一覧</h3>
+        <button onClick={handleNewTopic}>＋ 新しいトピック</button>
         <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
           {historyGroups.map((group, index) => (
             <li key={index} style={{ margin: '10px 0' }}>
@@ -154,30 +174,19 @@ export default function Home() {
                 <input
                   type="text"
                   value={group.topic}
-                  onChange={(e) => {
-                    const updated = [...historyGroups];
-                    updated[index].topic = e.target.value;
-                    setHistoryGroups(updated);
-                  }}
+                  onChange={(e) => handleRenameTopic(index, e.target.value)}
                   style={{ width: '80%' }}
                 />
               )}
-              <button onClick={() => {
-                const updated = [...historyGroups];
-                updated.splice(index, 1);
-                setHistoryGroups(updated);
-                if (selectedTopicIndex === index) {
-                  setSelectedTopicIndex(null);
-                } else if (selectedTopicIndex !== null && selectedTopicIndex > index) {
-                  setSelectedTopicIndex(selectedTopicIndex - 1);
-                }
-              }} style={{ marginLeft: 5, color: 'red' }}>削除</button>
+              <button onClick={() => handleDeleteTopic(index)} style={{ marginLeft: 5, color: 'red' }}>削除</button>
             </li>
           ))}
         </ul>
       </div>
 
-      <div style={{ flex: 1, padding: 20 }}>
+      {/* メインエリア */}
+      <div className="main" style={{ flex: 1, padding: 20 }}>
+
         <p style={{ fontStyle: 'italic', marginBottom: 10, fontSize: '1.2em' }}>
           {companyName && <span style={{ fontWeight: 'bold' }}>{companyName}</span>} with AI Partner<br />
           <span style={{ fontWeight: 'bold', color: 'black' }}>Powered by ChatGPT</span>

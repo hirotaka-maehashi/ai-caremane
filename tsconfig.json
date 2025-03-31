@@ -15,8 +15,10 @@
     "incremental": true,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "typeRoots": ["./src/types", "./node_modules/@types"]  // ここを追加
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/types/**/*"],  // 'src/types' フォルダを追加
   "exclude": ["node_modules"]
 }
+

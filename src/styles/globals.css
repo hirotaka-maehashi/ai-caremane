@@ -24,3 +24,25 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column !important;
+  }
+
+  .sidebar {
+    width: 100% !important;
+  }
+
+  .main {
+    padding: 10px !important;
+  }
+
+  textarea {
+    width: 100% !important;
+  }
+
+  input, select, button {
+    width: 100% !important;
+    margin-top: 5px;
+  }
+}
