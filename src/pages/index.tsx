@@ -156,8 +156,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">  
- {/* PC用サイドバー */}
-<aside className="bg-blue-900 text-white w-64 p-4 hidden md:flex flex-col justify-between">
+{/* ✅ PC表示：左サイドバー（md以上のみ表示） */}
+<aside className="hidden md:flex flex-col justify-between bg-blue-900 text-white w-64 p-4">
   <div>
     <h2 className="text-lg font-bold mb-6">AI Partner</h2>
     <ul className="space-y-2">
@@ -176,16 +176,18 @@ export default function Home() {
     </ul>
   </div>
 
-  <button
-    onClick={handleNewTopic}
-    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full mt-4"
-  >
-    ＋ 新しいトピック
-  </button>
+  <div className="mt-4">
+    <button
+      onClick={handleNewTopic}
+      className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
+    >
+      ＋ 新しいトピック
+    </button>
+  </div>
 </aside>
 
-{/* モバイル用：画面下部に表示 */}
-<div className="md:hidden bg-blue-900 text-white p-4 fixed bottom-0 w-full">
+{/* ✅ スマホ表示：下部に1つだけボタンを表示（md未満） */}
+<div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
   <button
     onClick={handleNewTopic}
     className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
