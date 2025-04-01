@@ -155,145 +155,143 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen pb-24">  
-{/* ✅ 左サイドバー（PCのみ表示） */}
-<aside className="hidden md:flex flex-col justify-between bg-blue-900 text-white w-64 p-4">
-  <div>
-    <h2 className="text-lg font-bold mb-6">AI Partner</h2>
-    <ul className="space-y-2">
-      {historyGroups.map((group, index) => (
-        <li key={index}>
-          <button
-            onClick={() => setSelectedTopicIndex(index)}
-            className={`block text-left w-full px-3 py-2 rounded ${
-              selectedTopicIndex === index ? 'bg-blue-800' : 'hover:bg-blue-800'
-            }`}
-          >
-            {group.topic}
-          </button>
-        </li>
-      ))}
-    </ul>
-  </div>
-
-  {/* ✅ トピック追加ボタン（PCだけ） */}
-  <div className="mt-4">
-  <button
-  onClick={handleNewTopic}
-  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full hidden md:block"
->
-  ＋ 新しいトピック
-</button>
-  </div>
-</aside>
-
-{/* ✅ モバイル用：下に固定するボタン（必ず外に書いてね） */}
-<div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
-  <button
-    onClick={handleNewTopic}
-    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
-  >
-    ＋ 新しいトピック
-  </button>
-</div>
-
-{/* メインエリア */}
-<div className="main" style={{ flex: 1, padding: 20 }}>
-        <p style={{ fontStyle: 'italic', marginBottom: 10, fontSize: '1.2em' }}>
-          {companyName && <span style={{ fontWeight: 'bold' }}>{companyName}</span>} with AI Partner<br />
-          <span style={{ fontWeight: 'bold', color: 'black' }}>Powered by ChatGPT</span>
-        </p>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>企業名：</label>
-          <input
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="例：株式会社〇〇"
-            style={{ marginLeft: 10, width: '50%' }}
+    <>
+      <div className="flex flex-col md:flex-row min-h-screen pb-24">
+        {/* サイドバー（PC） */}
+        <aside className="hidden md:flex flex-col justify-between bg-blue-900 text-white w-64 p-4">
+          <div>
+            <h2 className="text-lg font-bold mb-6">AI Partner</h2>
+            <ul className="space-y-2">
+              {historyGroups.map((group, index) => (
+                <li key={index}>
+                  <button
+                    onClick={() => setSelectedTopicIndex(index)}
+                    className={`block text-left w-full px-3 py-2 rounded ${
+                      selectedTopicIndex === index ? 'bg-blue-800' : 'hover:bg-blue-800'
+                    }`}
+                  >
+                    {group.topic}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+  
+          <div className="mt-4">
+            <button
+              onClick={handleNewTopic}
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full hidden md:block"
+            >
+              ＋ 新しいトピック
+            </button>
+          </div>
+        </aside>
+  
+        {/* メインエリア */}
+        <main className="flex-1 p-6">
+          <p className="italic mb-4 text-lg">
+            {companyName && <span className="font-bold">{companyName}</span>} with AI Partner<br />
+            <span className="font-bold text-black">Powered by ChatGPT</span>
+          </p>
+  
+          <div className="mb-4">
+            <label>企業名：</label>
+            <input
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="例：株式会社〇〇"
+              className="ml-2 border border-gray-300 p-2 rounded w-1/2"
+            />
+          </div>
+  
+          <div className="mb-4">
+            <label>業種を選択：</label>
+            <select
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              className="ml-2 border border-gray-300 p-2 rounded"
+            >
+              {Object.keys(industryPlaceholders).map((key) => (
+                <option key={key} value={key}>{key}</option>
+              ))}
+            </select>
+          </div>
+  
+          <div className="mb-4">
+            <label>目的を選択：</label>
+            <select
+              value={selectedPrompt}
+              onChange={(e) => setSelectedPrompt(e.target.value)}
+              className="ml-2 border border-gray-300 p-2 rounded"
+            >
+              {promptTemplates.map((prompt, index) => (
+                <option key={index} value={prompt}>{prompt || '自由入力'}</option>
+              ))}
+            </select>
+          </div>
+  
+          <textarea
+            rows={4}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onCompositionStart={() => { isComposing.current = true; }}
+            onCompositionEnd={() => { isComposing.current = false; }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && !isComposing.current) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder={industryPlaceholders[industry]}
+            className="w-full border border-gray-300 rounded p-2 mb-4"
           />
-        </div>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>業種を選択：</label>
-          <select
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            style={{ marginLeft: 10 }}
+  
+          <button
+            onClick={handleSend}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
           >
-            {Object.keys(industryPlaceholders).map((key) => (
-              <option key={key} value={key}>{key}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>目的を選択：</label>
-          <select
-            value={selectedPrompt}
-            onChange={(e) => setSelectedPrompt(e.target.value)}
-            style={{ marginLeft: 10 }}
+            {loading ? '送信中...' : '送信'}
+          </button>
+  
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleFileDrop}
+            className="border-2 border-dashed border-gray-400 p-6 mt-6 text-center rounded"
           >
-            {promptTemplates.map((prompt, index) => (
-              <option key={index} value={prompt}>{prompt || '自由入力'}</option>
-            ))}
-          </select>
-        </div>
-
-        <textarea
-          rows={4}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onCompositionStart={() => { isComposing.current = true; }}
-          onCompositionEnd={() => { isComposing.current = false; }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey && !isComposing.current) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder={industryPlaceholders[industry] || 'AIに話しかけてみよう'}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-
-        <button onClick={handleSend} disabled={loading}>
-          {loading ? '送信中...' : '送信'}
-        </button>
-
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleFileDrop}
-          style={{
-            border: '2px dashed #ccc',
-            padding: 20,
-            marginTop: 20,
-            textAlign: 'center',
-            color: '#888',
-            borderRadius: 10,
-          }}
-        >
-          📂 ファイルをここにドラッグ＆ドロップしてください（PDF / Word / テキスト）<br />
-          {uploadedFileName && <span style={{ color: '#555', fontSize: '0.9em' }}>アップロードされたファイル: {uploadedFileName}</span>}
-        </div>
-
-        <div style={{ marginTop: 40 }}>
-          <h3>チャット履歴：</h3>
-          {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
-            <div>
-              <h4 style={{ textDecoration: 'underline' }}>🗂️ トピック: {historyGroups[selectedTopicIndex].topic}</h4>
-              <ul>
-                {historyGroups[selectedTopicIndex].history.map((entry, index) => (
-                  <li key={index} style={{ marginBottom: 10 }}>
-                    <strong>あなた：</strong> {entry.user}<br />
-                    <strong>AI：</strong> {entry.ai}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+            📂 ファイルをここにドラッグ＆ドロップしてください（PDF / Word / テキスト）<br />
+            {uploadedFileName && <span className="text-sm text-gray-600">アップロードされたファイル: {uploadedFileName}</span>}
+          </div>
+  
+          <div className="mt-10">
+            <h3 className="text-lg font-bold">チャット履歴：</h3>
+            {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
+              <div>
+                <h4 className="underline font-medium mt-2 mb-2">🗂️ トピック: {historyGroups[selectedTopicIndex].topic}</h4>
+                <ul>
+                  {historyGroups[selectedTopicIndex].history.map((entry, i) => (
+                    <li key={i} className="mb-4">
+                      <p><strong>あなた：</strong> {entry.user}</p>
+                      <p><strong>AI：</strong> {entry.ai}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </main>
       </div>
-    </div>
+  
+      {/* モバイル専用：固定ボタン */}
+      <div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
+        <button
+          onClick={handleNewTopic}
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
+        >
+          ＋ 新しいトピック
+        </button>
+      </div>
+      </>
   );
 }
