@@ -187,17 +187,15 @@ export default function Home() {
   </div>
 </aside>
 
-{/* ✅ モバイル専用：下にだけ表示 */}
-{typeof window !== "undefined" && window.innerWidth < 768 && (
-  <div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
-    <button
-      onClick={handleNewTopic}
-      className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
-    >
-      ＋ 新しいトピック
-    </button>
-  </div>
-)}
+{/* ✅ モバイル専用：常に表示 → Tailwindだけで制御 */}
+<div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
+  <button
+    onClick={handleNewTopic}
+    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
+  >
+    ＋ 新しいトピック
+  </button>
+</div>
 
 {/* メインエリア */}
 <div className="main" style={{ flex: 1, padding: 20 }}>
