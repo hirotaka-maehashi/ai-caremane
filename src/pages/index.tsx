@@ -155,38 +155,34 @@ export default function Home() {
   };
 
   return (
-    <div className="container" style={{ display: 'flex', height: '100vh' }}>
+    <div className="flex flex-col md:flex-row min-h-screen">  
   {/* サイドバー */}
-  <div className="sidebar" style={{ width: 250, backgroundColor: '#f4f4f4', padding: 10 }}>
+  <aside className="bg-blue-900 text-white w-64 p-4 hidden md:block">
+  <h2 className="text-lg font-bold mb-6">AI Partner</h2>
+  <button
+    onClick={handleNewTopic}
+    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mb-4"
+  >
+    ＋ 新しいトピック
+  </button>
+  <ul className="space-y-2">
+    {historyGroups.map((group, index) => (
+      <li key={index}>
+        <button
+          onClick={() => setSelectedTopicIndex(index)}
+          className={`block text-left w-full px-3 py-2 rounded ${
+            selectedTopicIndex === index ? 'bg-blue-800' : 'hover:bg-blue-800'
+          }`}
+        >
+          {group.topic}
+        </button>
+      </li>
+    ))}
+   </ul>
+</aside>
 
-        <h3>👣 トピック一覧</h3>
-        <button onClick={handleNewTopic}>＋ 新しいトピック</button>
-        <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
-          {historyGroups.map((group, index) => (
-            <li key={index} style={{ margin: '10px 0' }}>
-              <div
-                onClick={() => setSelectedTopicIndex(index)}
-                style={{ cursor: 'pointer', fontWeight: selectedTopicIndex === index ? 'bold' : 'normal' }}
-              >
-                🗂️ {group.topic}
-              </div>
-              {selectedTopicIndex === index && (
-                <input
-                  type="text"
-                  value={group.topic}
-                  onChange={(e) => handleRenameTopic(index, e.target.value)}
-                  style={{ width: '80%' }}
-                />
-              )}
-              <button onClick={() => handleDeleteTopic(index)} style={{ marginLeft: 5, color: 'red' }}>削除</button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* メインエリア */}
-      <div className="main" style={{ flex: 1, padding: 20 }}>
-
+{/* メインエリア */}
+<div className="main" style={{ flex: 1, padding: 20 }}>
         <p style={{ fontStyle: 'italic', marginBottom: 10, fontSize: '1.2em' }}>
           {companyName && <span style={{ fontWeight: 'bold' }}>{companyName}</span>} with AI Partner<br />
           <span style={{ fontWeight: 'bold', color: 'black' }}>Powered by ChatGPT</span>
