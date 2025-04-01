@@ -155,7 +155,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">  
+    <div className="flex flex-col md:flex-row min-h-screen pb-24">  
 {/* ✅ 左サイドバー（PCのみ表示） */}
 <aside className="hidden md:flex flex-col justify-between bg-blue-900 text-white w-64 p-4">
   <div>
@@ -187,7 +187,7 @@ export default function Home() {
   </div>
 </aside>
 
-{/* ✅ モバイル専用：常に表示 → Tailwindだけで制御 */}
+{/* ✅ モバイル用：下に固定するボタン（必ず外に書いてね） */}
 <div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
   <button
     onClick={handleNewTopic}
