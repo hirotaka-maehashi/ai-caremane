@@ -156,7 +156,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">  
-{/* ✅ PC表示：左サイドバー（md以上のみ表示） */}
+{/* ✅ 左サイドバー（PCのみ表示） */}
 <aside className="hidden md:flex flex-col justify-between bg-blue-900 text-white w-64 p-4">
   <div>
     <h2 className="text-lg font-bold mb-6">AI Partner</h2>
@@ -176,6 +176,7 @@ export default function Home() {
     </ul>
   </div>
 
+  {/* ✅ トピック追加ボタン（PCだけ） */}
   <div className="mt-4">
     <button
       onClick={handleNewTopic}
@@ -186,15 +187,17 @@ export default function Home() {
   </div>
 </aside>
 
-{/* ✅ スマホ表示：下部に1つだけボタンを表示（md未満） */}
-<div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
-  <button
-    onClick={handleNewTopic}
-    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
-  >
-    ＋ 新しいトピック
-  </button>
-</div>
+{/* ✅ モバイル専用：下にだけ表示 */}
+{typeof window !== "undefined" && window.innerWidth < 768 && (
+  <div className="fixed bottom-0 left-0 w-full bg-blue-900 text-white p-4 md:hidden z-50">
+    <button
+      onClick={handleNewTopic}
+      className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
+    >
+      ＋ 新しいトピック
+    </button>
+  </div>
+)}
 
 {/* メインエリア */}
 <div className="main" style={{ flex: 1, padding: 20 }}>
