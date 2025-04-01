@@ -156,30 +156,43 @@ export default function Home() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">  
-  {/* サイドバー */}
-  <aside className="bg-blue-900 text-white w-64 p-4 hidden md:block">
-  <h2 className="text-lg font-bold mb-6">AI Partner</h2>
+ {/* PC用サイドバー */}
+<aside className="bg-blue-900 text-white w-64 p-4 hidden md:flex flex-col justify-between">
+  <div>
+    <h2 className="text-lg font-bold mb-6">AI Partner</h2>
+    <ul className="space-y-2">
+      {historyGroups.map((group, index) => (
+        <li key={index}>
+          <button
+            onClick={() => setSelectedTopicIndex(index)}
+            className={`block text-left w-full px-3 py-2 rounded ${
+              selectedTopicIndex === index ? 'bg-blue-800' : 'hover:bg-blue-800'
+            }`}
+          >
+            {group.topic}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+
   <button
     onClick={handleNewTopic}
-    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mb-4"
+    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full mt-4"
   >
     ＋ 新しいトピック
   </button>
-  <ul className="space-y-2">
-    {historyGroups.map((group, index) => (
-      <li key={index}>
-        <button
-          onClick={() => setSelectedTopicIndex(index)}
-          className={`block text-left w-full px-3 py-2 rounded ${
-            selectedTopicIndex === index ? 'bg-blue-800' : 'hover:bg-blue-800'
-          }`}
-        >
-          {group.topic}
-        </button>
-      </li>
-    ))}
-   </ul>
 </aside>
+
+{/* モバイル用：画面下部に表示 */}
+<div className="md:hidden bg-blue-900 text-white p-4 fixed bottom-0 w-full">
+  <button
+    onClick={handleNewTopic}
+    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
+  >
+    ＋ 新しいトピック
+  </button>
+</div>
 
 {/* メインエリア */}
 <div className="main" style={{ flex: 1, padding: 20 }}>
