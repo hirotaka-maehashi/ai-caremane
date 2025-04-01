@@ -178,12 +178,12 @@ export default function Home() {
 
   {/* ✅ トピック追加ボタン（PCだけ） */}
   <div className="mt-4">
-    <button
-      onClick={handleNewTopic}
-      className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full"
-    >
-      ＋ 新しいトピック
-    </button>
+  <button
+  onClick={handleNewTopic}
+  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded w-full hidden md:block"
+>
+  ＋ 新しいトピック
+</button>
   </div>
 </aside>
 
