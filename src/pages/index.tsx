@@ -155,10 +155,9 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen pb-24">
-
+    <div className="flex flex-col md:flex-row min-h-screen">
       {/* サイドバー */}
-      <div style={{ width: 250, backgroundColor: '#f4f4f4', padding: 10 }}>
+      <div className="w-[250px] bg-gray-100 p-4">
         <h3>AI Partner</h3>
         <button onClick={handleNewTopic}>＋ 新しいトピック</button>
         <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
@@ -273,4 +272,5 @@ export default function Home() {
     </div>
   );
 }
+
 
