@@ -155,7 +155,8 @@ export default function Home() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div className="flex flex-col md:flex-row min-h-screen pb-24">
+
       {/* サイドバー */}
       <div style={{ width: 250, backgroundColor: '#f4f4f4', padding: 10 }}>
         <h3>AI Partner</h3>
@@ -186,21 +187,10 @@ export default function Home() {
       {/* メインエリア */}
       <div style={{ flex: 1, padding: 20 }}>
         <p style={{ fontStyle: 'italic', marginBottom: 10, fontSize: '1.2em' }}>
-          {companyName && <span style={{ fontWeight: 'bold' }}>{companyName}</span>} with AI Partner<br />
           <span style={{ fontWeight: 'bold', color: 'black' }}>Powered by ChatGPT</span>
         </p>
 
-        <div style={{ marginBottom: 10 }}>
-          <label>企業名：</label>
-          <input
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="例：株式会社〇〇"
-            style={{ marginLeft: 10, width: '50%' }}
-          />
-        </div>
-
+    
         <div style={{ marginBottom: 10 }}>
           <label>業種を選択：</label>
           <select
