@@ -7,23 +7,15 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-/* 📱 モバイル対応のレイアウト調整 */
 @media (max-width: 768px) {
-  /* .container は削除！ Tailwindに任せる */
-  
+  .container {
+    flex-direction: column !important;
+  }
+
+  .sidebar {
+    width: 100% !important;
+  }
+
   .main {
     padding: 10px !important;
   }
