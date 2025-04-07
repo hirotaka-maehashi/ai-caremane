@@ -372,7 +372,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 font-sans text-gray-800">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <div className="w-[250px] bg-gray-100 p-4">
         <h3>AI Partner</h3>
         <button onClick={handleNewTopic}>＋ 新しいトピック</button>
@@ -389,7 +389,7 @@ export default function Home() {
 
         <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
           {historyGroups.map((group, index) => (
-            <li key={index} style={{ margin: '100px 0' }}>
+            <li key={index} style={{ margin: '10px 0' }}>
               <div
                 onClick={() => setSelectedTopicIndex(index)}
                 style={{ cursor: 'pointer', fontWeight: selectedTopicIndex === index ? 'bold' : 'normal' }}
@@ -410,7 +410,7 @@ export default function Home() {
         </ul>
       </div>
 
-      <div style={{ flex: 1, padding: 30 }}>
+      <div style={{ flex: 1, padding: 20 }}>
 
         <div style={{ marginBottom: 10 }}>
           <label>業種を選択：</label>
@@ -425,7 +425,7 @@ export default function Home() {
           </select>
         </div>
 
-        <div style={{ marginBottom: 30 }}>
+        <div style={{ marginBottom: 10 }}>
           <label>自由入力モード：</label>
           <input
             type="checkbox"
@@ -490,7 +490,7 @@ export default function Home() {
           <h3>チャット履歴：</h3>
           {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
             <div>
-              <h4 style={{ textDecoration: 'underline' }}>トピック: {historyGroups[selectedTopicIndex].topic}</h4>
+              <h4 style={{ textDecoration: 'underline' }}>🗂️ トピック: {historyGroups[selectedTopicIndex].topic}</h4>
               <ul>
                 {historyGroups[selectedTopicIndex].history.map((entry, index) => (
                   <li key={index} style={{ marginBottom: 10 }}>
