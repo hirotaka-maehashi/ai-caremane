@@ -1,5 +1,5 @@
 // src/pages/_app.tsx
-import '@/styles/globals.css'
+import '../styles/globals.css'; // ← ✅ これで確実に読み込めます
 import type { AppProps } from 'next/app'
 import { AppProvider } from '../context/AppContext' // ←追加
 
