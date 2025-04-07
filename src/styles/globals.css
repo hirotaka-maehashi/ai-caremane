@@ -29,3 +29,13 @@
     margin-top: 5px;
   }
 }
+.radio-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.radio-row input[type="radio"] {
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}

@@ -1,11 +1,11 @@
 {
-    "git.ignoreLimitWarning": true,
-    "css.validate": false,
-    "editor.quickSuggestions": {
-      "strings": true
-    },
-    "tailwindCSS.includeLanguages": {
-      "typescriptreact": "html"
-    }
+  "cSpell.enable": false,  // 👈 スペルチェックを無効にする（追加）
+  "git.ignoreLimitWarning": true,
+  "css.validate": false,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "tailwindCSS.includeLanguages": {
+    "typescriptreact": "html"
   }
-  
+}
