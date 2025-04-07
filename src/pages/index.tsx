@@ -57,28 +57,6 @@ export default function Home() {
   }, []);  
 
   const templateSetsByClient: Record<string, Record<string, string[]>> = {
-    'client-a': {
-      '営業': [
-        '',
-        '営業日報をまとめてください',
-        '商談メモを整理してください'
-      ],
-      '教育': [
-        '',
-        '社内勉強会の記録を作成してください'
-      ]
-    },
-    'client-b': {
-      '介護': [
-        '',
-        'モニタリング記録を作成してください',
-        '長期目標を立ててください'
-      ],
-      '教育': [
-        '',
-        '研修評価コメントを作成してください'
-      ]
-    },
     'default': {
       '介護': [
         '',
@@ -90,6 +68,22 @@ export default function Home() {
         '入退院時の情報引き継ぎをまとめてください',
         'バイタルと体調の変化を記録してください',
         '家族とのやり取りを記録してください'
+      ],
+      '福祉': [
+        '',
+        '支援計画を作成してください',
+        '個別支援計画のモニタリング記録を作成してください',
+        'アセスメント内容をまとめてください',
+        '本人の意向を反映した計画を提案してください',
+        '支援チームへの申し送り内容を整理してください'
+      ],
+      '看護': [
+        '',
+        'バイタルサインと全身状態を記録してください',
+        '実施した処置とその反応をまとめてください',
+        '服薬状況と服薬支援の内容を記録してください',
+        'ご家族への説明や連絡内容を記録してください',
+        '次回訪問時の観察ポイントを整理してください',
       ],
       '営業': [
         '',
@@ -109,14 +103,6 @@ export default function Home() {
         '振り返りシートのコメントを提案してください',
         '指導者からのアドバイスをまとめてください',
         'フィードバック記録を作成してください'
-      ],
-      '福祉': [
-        '',
-        '支援計画を作成してください',
-        '個別支援計画のモニタリング記録を作成してください',
-        'アセスメント内容をまとめてください',
-        '本人の意向を反映した計画を提案してください',
-        '支援チームへの申し送り内容を整理してください'
       ],
       'カスタマーサポート': [
         '',
@@ -386,138 +372,130 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
-      <div className="w-[250px] bg-gray-100 p-4">
-        <h3>AI Partner</h3>
-        <button onClick={handleNewTopic}>＋ 新しいトピック</button>
-
-        <button
-  onClick={async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }}
-  className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
->
-  ログアウト
-</button>
-
-        <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
-          {historyGroups.map((group, index) => (
-            <li key={index} style={{ margin: '10px 0' }}>
-              <div
-                onClick={() => setSelectedTopicIndex(index)}
-                style={{ cursor: 'pointer', fontWeight: selectedTopicIndex === index ? 'bold' : 'normal' }}
-              >
-                🗂️ {group.topic}
-              </div>
-              {selectedTopicIndex === index && (
-                <input
-                  type="text"
-                  value={group.topic}
-                  onChange={(e) => handleRenameTopic(index, e.target.value)}
-                  style={{ width: '80%' }}
-                />
-              )}
-              <button onClick={() => handleDeleteTopic(index)} style={{ marginLeft: 5, color: 'red' }}>削除</button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div style={{ flex: 1, padding: 20 }}>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>業種を選択：</label>
-          <select
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            style={{ marginLeft: 10 }}
+    <div className="flex flex-col h-screen bg-gray-100">
+      {/* ヘッダー */}
+      <header className="p-4 bg-white shadow">
+        <h1 className="text-xl font-semibold">AI Partner</h1>
+      </header>
+  
+      {/* チャット本体エリア */}
+      <main className="flex flex-1 overflow-hidden">
+        {/* サイドバー */}
+        <aside className="w-[250px] bg-gray-100 p-4 overflow-y-auto">
+          <h3>AI Partner</h3>
+          <button onClick={handleNewTopic}>＋ 新しいトピック</button>
+          <button
+            onClick={handleLogout}
+            className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
           >
-            {Object.keys(promptTemplatesByIndustry).map((key) => (
-              <option key={key} value={key}>{key}</option>
+            ログアウト
+          </button>
+          <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+            {historyGroups.map((group, index) => (
+              <li key={index} style={{ margin: '10px 0' }}>
+                <div
+                  onClick={() => setSelectedTopicIndex(index)}
+                  style={{ cursor: 'pointer', fontWeight: selectedTopicIndex === index ? 'bold' : 'normal' }}
+                >
+                  🗂️ {group.topic}
+                </div>
+                {selectedTopicIndex === index && (
+                  <input
+                    type="text"
+                    value={group.topic}
+                    onChange={(e) => handleRenameTopic(index, e.target.value)}
+                    style={{ width: '80%' }}
+                  />
+                )}
+                <button onClick={() => handleDeleteTopic(index)} style={{ marginLeft: 5, color: 'red' }}>削除</button>
+              </li>
             ))}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>自由入力モード：</label>
-          <input
-            type="checkbox"
-            checked={freeMode}
-            onChange={(e) => setFreeMode(e.target.checked)}
-            style={{ marginLeft: 10 }}
+          </ul>
+        </aside>
+  
+        {/* チャット画面 */}
+        <section className="flex-1 flex flex-col overflow-y-auto p-4">
+          {/* 上部操作パネル */}
+          <div className="mb-4">
+            <label>業種を選択：</label>
+            <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="ml-2 border rounded px-2 py-1">
+              {Object.keys(promptTemplatesByIndustry).map((key) => (
+                <option key={key} value={key}>{key}</option>
+              ))}
+            </select>
+  
+            <label className="ml-6">自由入力モード：</label>
+            <input
+              type="checkbox"
+              checked={freeMode}
+              onChange={(e) => setFreeMode(e.target.checked)}
+              className="ml-2"
+            />
+  
+            <label className="ml-6">目的を選択：</label>
+            <select
+              value={selectedPrompt}
+              onChange={(e) => setSelectedPrompt(e.target.value)}
+              disabled={freeMode}
+              className="ml-2 border rounded px-2 py-1"
+            >
+              {promptOptions.map((prompt, index) => (
+                <option key={index} value={prompt}>{prompt || '自由入力'}</option>
+              ))}
+            </select>
+          </div>
+  
+          {/* チャット入力 */}
+          <textarea
+            rows={4}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onCompositionStart={() => { isComposing.current = true; }}
+            onCompositionEnd={() => { isComposing.current = false; }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && !isComposing.current) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder={promptOptions[0] || 'AIに話しかけてみよう'}
+            className="w-full p-2 border rounded mb-4"
           />
-        </div>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>目的を選択：</label>
-          <select
-            value={selectedPrompt}
-            onChange={(e) => setSelectedPrompt(e.target.value)}
-            style={{ marginLeft: 10 }}
-            disabled={freeMode}
+  
+          <button onClick={handleSend} disabled={loading} className="mb-4 bg-blue-500 text-white px-4 py-2 rounded">
+            {loading ? '送信中...' : '送信'}
+          </button>
+  
+          {/* ファイルドロップエリア */}
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleFileDrop}
+            className="border-2 border-dashed border-gray-400 p-4 text-center text-gray-500 rounded mb-4"
           >
-            {promptOptions.map((prompt, index) => (
-              <option key={index} value={prompt}>{prompt || '自由入力'}</option>
-            ))}
-          </select>
-        </div>
-
-        <textarea
-          rows={4}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onCompositionStart={() => { isComposing.current = true; }}
-          onCompositionEnd={() => { isComposing.current = false; }}
-          onKeyDown={(e) => {
-            console.log('🔍 key pressed:', e.key, 'isComposing:', isComposing.current);
-            if (e.key === 'Enter' && !e.shiftKey && !isComposing.current) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder={promptOptions[0] || 'AIに話しかけてみよう'}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-
-<button onClick={handleSend} disabled={loading}>
-          {loading ? '送信中...' : '送信'}
-        </button>
-
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleFileDrop}
-          style={{
-            border: '2px dashed #ccc',
-            padding: 20,
-            marginTop: 20,
-            textAlign: 'center',
-            color: '#888',
-            borderRadius: 10,
-          }}
-        >
-          📂 ファイルをここにドラッグ＆ドロップしてください（PDF / Word / テキスト）<br />
-          {uploadedFileName && <span style={{ color: '#555', fontSize: '0.9em' }}>アップロードされたファイル: {uploadedFileName}</span>}
-        </div>
-
-        <div style={{ marginTop: 40 }}>
-          <h3>チャット履歴：</h3>
-          {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
-            <div>
-              <h4 style={{ textDecoration: 'underline' }}>🗂️ トピック: {historyGroups[selectedTopicIndex].topic}</h4>
-              <ul>
-                {historyGroups[selectedTopicIndex].history.map((entry, index) => (
-                  <li key={index} style={{ marginBottom: 10 }}>
-                    <strong>あなた：</strong> {entry.user}<br />
-                    <strong>AI：</strong> {entry.ai}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-        <Footer />
-      </div>
+            📂 ファイルをここにドラッグ＆ドロップしてください（PDF / Word / テキスト）<br />
+            {uploadedFileName && <span className="text-gray-600 text-sm">アップロードされたファイル: {uploadedFileName}</span>}
+          </div>
+  
+          {/* チャット履歴 */}
+          <div className="mt-4">
+            <h3 className="font-bold mb-2">チャット履歴：</h3>
+            {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
+              <div>
+                <h4 className="underline mb-2">トピック: {historyGroups[selectedTopicIndex].topic}</h4>
+                <ul>
+                  {historyGroups[selectedTopicIndex].history.map((entry, index) => (
+                    <li key={index} className="mb-4">
+                      <strong>あなた：</strong> {entry.user}<br />
+                      <strong>AI：</strong> {entry.ai}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <Footer />
+        </section>
+      </main>
     </div>
   );
-}  
+};  
