@@ -394,7 +394,7 @@ export default function Home() {
                 onClick={() => setSelectedTopicIndex(index)}
                 style={{ cursor: 'pointer', fontWeight: selectedTopicIndex === index ? 'bold' : 'normal' }}
               >
-                🗂️ {group.topic}
+                📁 {group.topic}
               </div>
               {selectedTopicIndex === index && (
                 <input
