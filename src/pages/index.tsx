@@ -490,12 +490,12 @@ export default function Home() {
           <h3>チャット履歴：</h3>
           {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
             <div>
-              <h4 style={{ textDecoration: 'underline' }}>🗂️ トピック: {historyGroups[selectedTopicIndex].topic}</h4>
+              <h4 style={{ textDecoration: 'underline' }}>👣トピック: {historyGroups[selectedTopicIndex].topic}</h4>
               <ul>
                 {historyGroups[selectedTopicIndex].history.map((entry, index) => (
                   <li key={index} style={{ marginBottom: 10 }}>
                     <strong>あなた：</strong> {entry.user}<br />
-                    <strong>AI：</strong> {entry.ai}
+                    <strong>AI🤖：</strong> {entry.ai}
                   </li>
                 ))}
               </ul>
