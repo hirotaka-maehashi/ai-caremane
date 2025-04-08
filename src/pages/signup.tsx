@@ -24,7 +24,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen p-4">
-      <h1 className="text-2xl font-bold mb-6">📩 法人アカウント登録</h1>
+      <h1 className="text-2xl font-bold mb-6">法人アカウント登録</h1>
 
       <input
         type="email"
