@@ -19,10 +19,15 @@ const Footer = () => {
   };  
 
   return (
-    <footer className="text-center text-sm text-gray-500 p-4">
-      Powered by {getProviderName()}
+    <footer className="footer-wrapper">
+      <p className="powered-label">Powered by {getProviderName()}</p>
+      <p className="powered-note">
+  AIの回答は正確性を保証するものではありません。<br />
+  重要な情報は必ずご自身でご確認ください。
+</p>
+      <img src="/このロゴで決定.png" alt="スター株式会社" className="company-logo" />
     </footer>
-  );
+  );  
 };
 
 export default Footer;

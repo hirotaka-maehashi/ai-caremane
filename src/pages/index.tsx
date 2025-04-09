@@ -25,10 +25,30 @@ export default function Home() {
   const isComposing = useRef(false);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [uploadedFileText, setUploadedFileText] = useState('');
+  const [uploadedFileUrl, setUploadedFileUrl] = useState('');
   const [freeMode, setFreeMode] = useState(false);
   const [clientId, setClientId] = useState('');
   const [apiKey, setApiKey] = useState('');
   const { provider, setProvider: setGlobalProvider } = useAppContext();
+  const reversedHistoryGroups = [...historyGroups].reverse();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+ 
+  // 🔧 useState（上部）
+const [isAddingNewTopic, setIsAddingNewTopic] = useState(false);
+const [newTopicName, setNewTopicName] = useState('新しいトピック');
+const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+
+// 🔧 関数（中盤）
+const handleCancelNewTopic = () => {
+  setIsAddingNewTopic(false);
+  setNewTopicName('');
+};
+
+  const handleClearUpload = () => {
+    setUploadedFileName('');
+    setUploadedFileText('');
+    setUploadedFileUrl('');
+  };  
 
   useEffect(() => {
     const fetchApiKey = async () => {
@@ -171,9 +191,31 @@ export default function Home() {
     }
   }, [industry, freeMode]);
 
+  useEffect(() => {
+    // SupabaseからAPIキー取得
+  }, []);
+  
   const handleSend = async () => {
     if (!input.trim() && !uploadedFileText) return;
     setLoading(true);
+    let prompt = input;
+
+    console.log("📤 使用中のモデル:", selectedModel);
+
+// ✅ 画像がある場合
+if (uploadedFileUrl && uploadedFileUrl.match(/\.(jpg|jpeg|png|gif)$/i)) {
+  prompt += `\n\n画像が添付されています: ${uploadedFileUrl}\nこの画像について説明してください。`;
+}
+
+// ✅ 音声がある場合
+if (uploadedFileUrl && uploadedFileUrl.match(/\.(mp3|wav|m4a)$/i)) {
+  prompt += `\n\n音声ファイルが添付されています: ${uploadedFileUrl}\n音声の内容についてご説明ください。`;
+}
+
+// ✅ ファイル内容（PDF / Word / Text）がある場合
+if (uploadedFileText) {
+  prompt += `\n\n---\n以下はアップロードされたファイルの内容です:\n${uploadedFileText}`;
+}
   
     console.log('🧪 現在の provider:', provider);
     console.log('🧪 現在の apiKey:', apiKey);
@@ -308,7 +350,8 @@ export default function Home() {
     const file = e.dataTransfer.files[0];
     if (!file) return;
     setUploadedFileName(file.name);
-
+  
+    // ✅ PDF
     if (file.type === 'application/pdf') {
       const reader = new FileReader();
       reader.onload = async () => {
@@ -324,6 +367,8 @@ export default function Home() {
         setUploadedFileText(text);
       };
       reader.readAsArrayBuffer(file);
+  
+    // ✅ Word (.docx)
     } else if (file.name.endsWith('.docx')) {
       const reader = new FileReader();
       reader.onload = async () => {
@@ -332,6 +377,8 @@ export default function Home() {
         setUploadedFileText(result.value);
       };
       reader.readAsArrayBuffer(file);
+  
+    // ✅ テキストファイル
     } else if (file.type.startsWith('text/')) {
       const reader = new FileReader();
       reader.onload = () => {
@@ -341,19 +388,56 @@ export default function Home() {
         }
       };
       reader.readAsText(file);
-    } else {
-      alert('対応していないファイル形式です。PDF、Word（.docx）、またはテキストファイルをアップロードしてください。');
-    }
-  };
+  
+   // ✅ 画像 or 音声ファイル（プレビュー用URLを生成）
+} else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
+  const cleanFileName = file.name
+    .replace(/\s/g, '_')              // 空白をアンダースコアに変換
+    .replace(/[^\w.\-]/gi, '');       // 日本語・記号などを除去
+
+  const filePath = `uploads/${Date.now()}_${cleanFileName}`;
+  console.log('🛠 filePath:', filePath); // ← デバッグ用ログ
+
+  const { error: uploadError } = await supabase.storage
+    .from('uploads-v2') // ✅ ← バケット名を正しく
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error('❌ アップロード失敗:', uploadError.message);
+    alert('ファイルのアップロードに失敗しました');
+    return;
+  }
+
+  // ✅ 公開URLを取得（同じバケット名で！）
+  const { data: publicUrlData } = supabase.storage
+  .from('uploads-v2')
+  .getPublicUrl(filePath);
+
+if (!publicUrlData) {
+  console.error('❌ 公開URLの取得に失敗しました');
+  alert('公開URLの取得に失敗しました');
+  return;
+}
+
+  const publicUrl = publicUrlData.publicUrl;
+  console.log('✅ 公開URL:', publicUrl);
+
+  setUploadedFileUrl(publicUrl); // ← AI に渡すためのURL
+  setUploadedFileText('');
+}
+  };  
 
   const handleNewTopic = () => {
-    const newGroup = { topic: '新しいトピック', history: [] };
+    const newGroup = { topic: '', history: [] }; // ← ここを空にする！
     const updatedGroups = [...historyGroups, newGroup];
     setHistoryGroups(updatedGroups);
     setSelectedTopicIndex(updatedGroups.length - 1);
     setInput('');
   };
-
+  
   const handleRenameTopic = (index: number, newTitle: string) => {
     const updated = [...historyGroups];
     updated[index].topic = newTitle;
@@ -371,139 +455,220 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="flex flex-col md:flex-row min-h-screen">
-      <div className="w-[250px] bg-gray-100 p-4">
-        <h3>AI Partner</h3>
-        <button onClick={handleNewTopic}>＋ 新しいトピック</button>
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, []);  
 
-        <button
-  onClick={async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }}
-  className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+return (
+  <div className="chat-layout">
+
+  {sidebarOpen && (
+  <div
+    className="sidebar-overlay"
+    onClick={() => setSidebarOpen(false)}
+  />
+)}
+    {/* サイドバー */}
+    <div className={`chat-sidebar ${sidebarOpen ? '' : 'closed'}`}>
+  <div className="sidebar-scrollable">
+  <div className="sidebar-header">
+  <h3 className="sidebar-title">AI Partner</h3>
+  <button onClick={handleNewTopic} className="new-topic-button">
+  ＋ 新しいトピック
+  </button>
+  </div>
+
+    {/* トピック一覧 */}
+  <ul className="chat-topic-list">
+  {historyGroups.map((group, index) => (
+  <li key={index} className="topic-item">
+    
+    <div
+  onClick={() => setSelectedTopicIndex(index)}
+  className={`topic-title ${selectedTopicIndex === index ? 'selected' : ''} ${group.topic === '' ? 'new-topic-shrink' : ''}`}
 >
-  ログアウト
-</button>
+  📁 {group.topic || 'タイトルを入力'}
+</div>
 
-        <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
-          {historyGroups.map((group, index) => (
-            <li key={index} style={{ margin: '10px 0' }}>
-              <div
-                onClick={() => setSelectedTopicIndex(index)}
-                style={{ cursor: 'pointer', fontWeight: selectedTopicIndex === index ? 'bold' : 'normal' }}
-              >
-                📁 {group.topic}
-              </div>
-              {selectedTopicIndex === index && (
-                <input
-                  type="text"
-                  value={group.topic}
-                  onChange={(e) => handleRenameTopic(index, e.target.value)}
-                  style={{ width: '80%' }}
-                />
-              )}
-              <button onClick={() => handleDeleteTopic(index)} style={{ marginLeft: 5, color: 'red' }}>削除</button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div style={{ flex: 1, padding: 20 }}>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>業種を選択：</label>
-          <select
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            style={{ marginLeft: 10 }}
-          >
-            {Object.keys(promptTemplatesByIndustry).map((key) => (
-              <option key={key} value={key}>{key}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>自由入力モード：</label>
-          <input
-            type="checkbox"
-            checked={freeMode}
-            onChange={(e) => setFreeMode(e.target.checked)}
-            style={{ marginLeft: 10 }}
-          />
-        </div>
-
-        <div style={{ marginBottom: 10 }}>
-          <label>目的を選択：</label>
-          <select
-            value={selectedPrompt}
-            onChange={(e) => setSelectedPrompt(e.target.value)}
-            style={{ marginLeft: 10 }}
-            disabled={freeMode}
-          >
-            {promptOptions.map((prompt, index) => (
-              <option key={index} value={prompt}>{prompt || '自由入力'}</option>
-            ))}
-          </select>
-        </div>
-
-        <textarea
-          rows={4}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onCompositionStart={() => { isComposing.current = true; }}
-          onCompositionEnd={() => { isComposing.current = false; }}
-          onKeyDown={(e) => {
-            console.log('🔍 key pressed:', e.key, 'isComposing:', isComposing.current);
-            if (e.key === 'Enter' && !e.shiftKey && !isComposing.current) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder={promptOptions[0] || 'AIに話しかけてみよう'}
-          style={{ width: '100%', marginBottom: 10 }}
-        />
-
-<button onClick={handleSend} disabled={loading}>
-          {loading ? '送信中...' : '送信'}
-        </button>
-
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleFileDrop}
-          style={{
-            border: '2px dashed #ccc',
-            padding: 20,
-            marginTop: 20,
-            textAlign: 'center',
-            color: '#888',
-            borderRadius: 10,
-          }}
-        >
-          📂 ファイルをここにドラッグ＆ドロップしてください（PDF / Word / テキスト）<br />
-          {uploadedFileName && <span style={{ color: '#555', fontSize: '0.9em' }}>アップロードされたファイル: {uploadedFileName}</span>}
-        </div>
-
-        <div style={{ marginTop: 40 }}>
-          <h3>チャット履歴：</h3>
-          {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
-            <div>
-              <h4 style={{ textDecoration: 'underline' }}>👣トピック: {historyGroups[selectedTopicIndex].topic}</h4>
-              <ul>
-                {historyGroups[selectedTopicIndex].history.map((entry, index) => (
-                  <li key={index} style={{ marginBottom: 10 }}>
-                    <strong>あなた：</strong> {entry.user}<br />
-                    <strong>AI🤖：</strong> {entry.ai}
-                  </li>
-                ))}
-              </ul>
-            </div>
+{selectedTopicIndex === index && (
+  <div className="topic-edit-block">
+    <input
+      type="text"
+      value={group.topic}
+      onChange={(e) => handleRenameTopic(index, e.target.value)}
+      className="topic-input"
+  />
+    <button onClick={() => handleDeleteTopic(index)} className="delete-button">
+    削除
+    </button>
+    </div>
           )}
+        </li>
+      ))}
+    </ul>
+  </div>
+  
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            router.push('/login');
+          }}
+          className="logout-button"
+        >
+          ログアウト
+        </button>
+      </div>
+  
+ {/* メインチャットエリア */}
+  <div className="chat-body">
+  {/* 左：フォーム */}
+  <div className="form-area">
+
+  <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="sidebar-toggle-button"
+      >
+        ≡
+      </button>
+
+    <div className="form-group">
+      <label>モデルを選択：</label>
+      <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+        <option value="gpt-3.5-turbo">GPT-3.5</option>
+        <option value="gpt-4">GPT-4</option>
+        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+      </select>
+    </div>
+
+    <div className="form-group">
+      <label>業種を選択：</label>
+      <select value={industry} onChange={(e) => setIndustry(e.target.value)}>
+        {Object.keys(promptTemplatesByIndustry).map((key) => (
+          <option key={key} value={key}>{key}</option>
+        ))}
+      </select>
+    </div>
+
+    <div className="form-group">
+      <label>自由入力モード：</label>
+      <input
+        type="checkbox"
+        checked={freeMode}
+        onChange={(e) => setFreeMode(e.target.checked)}
+      />
+    </div>
+
+    <div className="form-group">
+      <label>目的を選択：</label>
+      <select
+        value={selectedPrompt}
+        onChange={(e) => setSelectedPrompt(e.target.value)}
+        disabled={freeMode}
+      >
+        {promptOptions.map((prompt, index) => (
+          <option key={index} value={prompt}>{prompt || '自由入力'}</option>
+        ))}
+      </select>
+    </div>
+  
+    <textarea
+      rows={4}
+      value={input}
+      onChange={(e) => setInput(e.target.value)}
+      onCompositionStart={() => { isComposing.current = true; }}
+      onCompositionEnd={() => { isComposing.current = false; }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !isComposing.current) {
+          e.preventDefault();
+          handleSend();
+        }
+      }}
+      placeholder={promptOptions[0] || 'AIに話しかけてみよう'}
+      className="chat-textarea"
+    />
+  
+  <button onClick={handleSend} disabled={loading} className="chat-button">
+      {loading ? '送信中...' : '送信'}
+    </button>
+
+    <div
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleFileDrop}
+      className="file-drop-area"
+    >
+      📂 ファイルをここにドラッグ＆ドロップしてください（PDF / Word / テキスト / 画像 / 音声）
+    </div>
+  </div>
+
+        {uploadedFileName && (
+          <div className="uploaded-file-info">
+            <p>
+              アップロードされたファイル: <span>{uploadedFileName}</span>
+            </p>
+  
+            {uploadedFileUrl?.match(/\.(jpg|jpeg|png|gif)$/i) && (
+              <img src={uploadedFileUrl} alt="アップロード画像" />
+            )}
+  
+            {uploadedFileUrl?.match(/\.(mp3|wav|m4a)$/i) && (
+              <audio controls>
+                <source src={uploadedFileUrl} />
+                お使いのブラウザでは音声を再生できません。
+              </audio>
+            )}
+  
+            <button
+              onClick={handleClearUpload}
+              className="delete-button"
+            >
+              このファイルを削除する
+            </button>
+          </div>
+        )}
+  
+        <div className="chat-history-display">
+  
+          {typeof selectedTopicIndex === 'number' &&
+           selectedTopicIndex >= 0 &&
+           selectedTopicIndex < historyGroups.length ? (
+            <div className="chat-topic-history">
+          
+   {/* 右：チャット履歴表示部分（元の chat-topic-history） */}
+  <div className="chat-display">
+    {/* ここにチャット履歴ブロックを表示 */}
+    {selectedTopicIndex !== null && historyGroups[selectedTopicIndex] && (
+      <div className="chat-topic-history">
+        <h4 className="chat-topic-title">💬 {historyGroups[selectedTopicIndex].topic}</h4>
+        <div className="chat-history-list">
+          {historyGroups[selectedTopicIndex].history.map((entry, index) => (
+            <div key={index}>
+              <div className="chat-bubble-wrapper user">
+                <div className="chat-bubble">
+                  <span className="chat-role">あなた：</span>
+                  {entry.user}
+                </div>
+              </div>
+              <div className="chat-bubble-wrapper ai">
+                <div className="chat-bubble">
+                  <span className="chat-role">AI🤖：</span>
+                  {entry.ai}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-        <Footer />
+      </div>
+    )}
+  </div>
+</div>
+          ) : (
+            <p className="chat-history-empty">トピックが選択されていません。</p>
+          )}
+             <Footer />
+        </div>
       </div>
     </div>
   );
-}  
+};   

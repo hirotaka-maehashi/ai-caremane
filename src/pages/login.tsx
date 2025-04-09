@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 // @ts-ignore
-import { supabase } from '../lib/supabaseClient' // ✅ 相対パス & 拡張子なし
+import { supabase } from '../lib/supabaseClient'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -14,53 +14,68 @@ export default function LoginPage() {
       email,
       password,
     });
-  
+
     if (error) {
       setError(error.message);
     } else {
-      // ✅ ログイン後、SupabaseからAPIキーを取得して判断
       const { data: { user } } = await supabase.auth.getUser();
-  
+
       if (!user) {
         setError('ユーザー取得に失敗しました');
         return;
       }
-  
+
       const { data, error: fetchError } = await supabase
         .from('user_api_keys')
         .select('api_key')
         .eq('user_id', user.id)
         .single();
-  
+
       if (fetchError || !data || !data.api_key) {
-        router.push('/apikey'); // ✅ APIキー未登録 → 入力ページへ
+        router.push('/apikey');
       } else {
-        router.push('/'); // ✅ APIキーあり → チャット画面へ
+        router.push('/');
       }
     }
-  };  
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-bold mb-4">ログイン</h1>
-      <input
-        type="email"
-        placeholder="メールアドレス"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="border p-2 mb-2"
-      />
-      <input
-        type="password"
-        placeholder="パスワード"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="border p-2 mb-2"
-      />
-      <button onClick={handleLogin} className="bg-blue-600 text-white px-4 py-2 rounded">
-        ログイン
-      </button>
-      {error && <p className="text-red-600 mt-2">{error}</p>}
+    <div className="signup-container">
+      <h1 className="signup-title">ログイン</h1>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleLogin()
+        }}
+        className="signup-form"
+      >
+        <div>
+          <label htmlFor="email">メールアドレス</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@company.com"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password">パスワード</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="********"
+          />
+        </div>
+
+        <button type="submit">ログインする</button>
+
+        {error && <p>{error}</p>}
+      </form>
     </div>
   )
 }

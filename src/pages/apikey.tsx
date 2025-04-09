@@ -93,74 +93,69 @@ export default function ApiKeyPage() {
     llama: 'access-token-xxxxxxxxxx'
   };
   
-    return (
-      <div className="max-w-xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">AIプロバイダー設定</h1>
-    
-      <form className="space-y-6">
-       <div>
-  <label className="block font-semibold mb-2">法人名（会社名）を入力：</label>
-  <input
-    type="text"
-    placeholder="例：スター株式会社"
-    value={clientName} // ← ★ 追加
-    onChange={(e) => setClientName(e.target.value)} // ← ★ 追加
-    className="w-full border border-gray-300 rounded px-3 py-2"
-  />
+  return (
+    <div className="signup-container">
+      <h1 className="signup-title">AIプロバイダー設定</h1>
+  
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleSave()
+        }}
+        className="signup-form"
+      >
+        <div>
+          <label htmlFor="clientName">法人名（会社名）を入力：</label>
+          <input
+            id="clientName"
+            type="text"
+            placeholder="例：スター株式会社"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+          />
+        </div>
+  
+        <div>
+  <label className="block mb-2 font-semibold">AIプロバイダーを選択：</label>
+  <div className="radio-group">
+  {[
+    { value: "openai", label: "ChatGPT（OpenAI）" },
+    { value: "gemini", label: "Gemini（Google）" },
+    { value: "claude", label: "Claude（Anthropic）" },
+  ].map((option) => (
+    <label key={option.value} className="radio-row">
+      <input
+        type="radio"
+        name="provider"
+        value={option.value}
+        checked={provider === option.value}
+        onChange={() =>
+          setProvider(option.value as 'openai' | 'gemini' | 'claude')
+        }
+      />
+      <span>{option.label}</span>
+    </label>
+  ))}
+</div>
 </div>
 
-  <label className="block font-semibold mb-2">AIプロバイダーを選択：</label>
-
-  <table className="w-full">
-  <tbody>
-    {[
-      { value: "openai", label: "ChatGPT（OpenAI）" },
-      { value: "gemini", label: "Gemini（Google）" },
-      { value: "claude", label: "Claude（Anthropic）" },
-    ].map((option) => (
-      <tr key={option.value}>
-        <td className="pr-2 align-middle">
-          <input
-            type="radio"
-            id={option.value}
-            name="provider"
-            value={option.value}
-            checked={provider === option.value}
-            onChange={() => setProvider(option.value as 'openai' | 'gemini' | 'claude')}
-
-          />
-        </td>
-        <td className="align-middle">
-          <label htmlFor={option.value} className="text-base">
-            {option.label}
-          </label>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-    
         <div>
-          <label className="block font-semibold mb-2">APIキーを入力：</label>
+          <label htmlFor="apiKey">APIキーを入力：</label>
           <input
-  type="text"
-  placeholder={placeholderMap[provider] || 'sk-xxxxxxxxxxxxxxx'}
-  value={apiKey}
-  onChange={(e) => setApiKey(e.target.value)}
-  className="w-full border border-gray-300 rounded px-3 py-2 font-mono"
-/>
+            id="apiKey"
+            type="text"
+            placeholder={placeholderMap[provider] || 'sk-xxxxxxxxxxxx'}
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+          />
         </div>
-    
+  
         <div className="text-center">
-          <button
-            type="button"
-            onClick={handleSave} 
-            className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800"
-          >
-            保存してチャット画面へ進む →
-          </button>
+          <button type="submit">保存してチャット画面へ進む →</button>
         </div>
+  
+        {saved && <p className="text-green-600 text-sm mt-2">✅ 保存に成功しました</p>}
       </form>
     </div>
-    );
-  }
+  )
+};  

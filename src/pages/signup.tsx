@@ -12,7 +12,7 @@ export default function SignupPage() {
   const handleSignup = async () => {
     const { error } = await supabase.auth.signUp({
       email,
-      password
+      password,
     })
 
     if (error) {
@@ -23,36 +23,42 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen p-4">
-      <h1 className="text-2xl font-bold mb-6">法人アカウント登録</h1>
+    <div className="signup-container">
+      <h1 className="signup-title">法人アカウント登録</h1>
 
-      <input
-        type="email"
-        placeholder="法人メールアドレス"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="border px-4 py-2 mb-3 w-full max-w-md"
-      />
-
-      <input
-        type="password"
-        placeholder="パスワード（8文字以上）"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="border px-4 py-2 mb-4 w-full max-w-md"
-      />
-
-      <button
-        onClick={handleSignup}
-        className="bg-blue-600 text-white px-6 py-2 rounded"
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleSignup()
+        }}
+        className="signup-form"
       >
-        登録する
-      </button>
+        <div>
+          <label htmlFor="email">法人メールアドレス</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@company.com"
+          />
+        </div>
 
-      {message && (
-        <p className="mt-4 text-center text-sm max-w-md">{message}</p>
-      )}
+        <div>
+          <label htmlFor="password">パスワード（8文字以上）</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="********"
+          />
+        </div>
+
+        <button type="submit">登録する</button>
+
+        {message && <p>{message}</p>}
+      </form>
     </div>
   )
 }
-
