@@ -30,6 +30,7 @@ export default function Home() {
   const [clientId, setClientId] = useState('');
   const [apiKey, setApiKey] = useState('');
   const { provider, setProvider: setGlobalProvider } = useAppContext();
+  const [userCompanyId, setUserCompanyId] = useState<string | null>(null);
   const reversedHistoryGroups = [...historyGroups].reverse();
   const [sidebarOpen, setSidebarOpen] = useState(true);
  
@@ -139,13 +140,54 @@ const handleCancelNewTopic = () => {
   const promptOptions = freeMode ? [''] : promptTemplatesByIndustry[industry] || [''];
 
   useEffect(() => {
-    const checkApiKey = async () => {
+    const saved = localStorage.getItem('chat-history');
+    if (saved) {
+      setHistoryGroups(JSON.parse(saved));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('chat-history', JSON.stringify(historyGroups));
+  }, [historyGroups]);
+
+  useEffect(() => {
+    setInput('');
+    if (!freeMode) {
+      const newTemplates = promptTemplatesByIndustry[industry] || [''];
+      setSelectedPrompt(newTemplates[0]);
+    }
+  }, [industry, freeMode]);
+
+  useEffect(() => {
+    // SupabaseからAPIキー取得
+  }, []);
+
+  useEffect(() => {
+    console.log("🚀 useEffect 発動！"); 
+    console.log("🚀 checkApiKeyAndCompanyId 発動！");
+
+    const checkApiKeyAndCompanyId = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
       console.log('🟢 ログイン中のユーザー:', user);
   
       if (error || !user) {
         console.warn('⚠️ 未ログイン状態なので /login に遷移');
         router.push('/login');
+        return;
+      }
+  
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+
+        console.log("🔍 Supabaseから取得した profile:", profile);
+        console.log("✅ ログインユーザーの company_id:", profile?.company_id);
+setUserCompanyId(profile?.company_id);
+  
+      if (profileError || !profile?.company_id) {
+        console.error("❌ company_id の取得に失敗");
         return;
       }
   
@@ -169,31 +211,8 @@ const handleCancelNewTopic = () => {
       setGlobalProvider(data.provider || '');
     };
   
-    checkApiKey();
+    checkApiKeyAndCompanyId();
   }, []);  
-
-  useEffect(() => {
-    const saved = localStorage.getItem('chat-history');
-    if (saved) {
-      setHistoryGroups(JSON.parse(saved));
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('chat-history', JSON.stringify(historyGroups));
-  }, [historyGroups]);
-
-  useEffect(() => {
-    setInput('');
-    if (!freeMode) {
-      const newTemplates = promptTemplatesByIndustry[industry] || [''];
-      setSelectedPrompt(newTemplates[0]);
-    }
-  }, [industry, freeMode]);
-
-  useEffect(() => {
-    // SupabaseからAPIキー取得
-  }, []);
   
   const handleSend = async () => {
     if (!input.trim() && !uploadedFileText) return;
@@ -326,6 +345,7 @@ if (uploadedFileText) {
       
       await supabase.from('chat_history').insert({
         user_id: data.user.id,
+        company_id: userCompanyId,
         provider,
         industry,
         prompt: selectedPrompt,
@@ -589,9 +609,13 @@ return (
       className="chat-textarea"
     />
   
-  <button onClick={handleSend} disabled={loading} className="chat-button">
-      {loading ? '送信中...' : '送信'}
-    </button>
+  <button
+  onClick={handleSend}
+  disabled={loading || !userCompanyId}
+  className="chat-button"
+>
+  {loading ? '送信中...' : '送信'}
+</button>
 
     <div
       onDragOver={(e) => e.preventDefault()}
