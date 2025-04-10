@@ -43,6 +43,11 @@ export default function ApiKeyPage() {
   }, []);  
   
   const handleSave = async () => {
+
+    if (!clientName.trim()) {
+      alert("法人名（会社名）を入力してください");
+      return;
+    }
     const { data: { user }, error: userError } = await supabase.auth.getUser();
   
     if (!user || userError) {
@@ -58,6 +63,32 @@ export default function ApiKeyPage() {
       clientName
     });
   
+// 1. companies テーブルに法人名を登録 or 取得
+const { data: companyData, error: companyError } = await supabase
+  .from('companies')
+  .upsert({ name: clientName }) // nameが一意と仮定
+  .select('id')
+  .single();
+
+if (companyError || !companyData?.id) {
+  console.error("❌ 会社の登録または取得に失敗:", companyError);
+  alert("法人名の登録に失敗しました");
+  return;
+}
+
+console.log("✅ 取得した company_id:", companyData.id);
+
+// 2. user_profiles に company_id を保存
+const { error: profileError } = await supabase
+  .from('user_profiles')
+  .upsert({ id: user.id, company_id: companyData.id });
+
+if (profileError) {
+  console.error("❌ ユーザーの company_id 紐付けに失敗:", profileError);
+  alert("ユーザー情報の更新に失敗しました");
+  return;
+}
+
     const { error } = await supabase
     .from('user_api_keys')
     .upsert(
