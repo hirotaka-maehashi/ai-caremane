@@ -51,5 +51,3 @@ export async function callClaude(
   
     return content;
   }
-
-  // 🔁 デザイン反映確認用ダミーコメント
