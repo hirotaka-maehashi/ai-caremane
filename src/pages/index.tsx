@@ -661,7 +661,7 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
       </button>
 
     <div className="form-group">
-      <label>モデルを選択：</label>
+      <label>モデルを選んでください：</label>
       <select
   value={selectedModel}
   onChange={(e) => setSelectedModel(e.target.value)}
