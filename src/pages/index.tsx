@@ -153,7 +153,7 @@ const handleCancelNewTopic = () => {
     'default': {
       '介護': [
         '',
-        '日常生活の様子を記録してください',
+        '日常生活の様子を記録して下さい',
         'モニタリング記録を作成してください',
         '長期目標と短期目標を立ててください',
         'サービス提供記録を作成してください',
@@ -848,4 +848,3 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
     </div>
   );
 }; 
-// 🔁 デザイン反映確認用ダミーコメント
