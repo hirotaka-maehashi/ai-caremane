@@ -192,7 +192,7 @@ select {
       margin: 0 auto 16px auto;          /* ← PCでは少し内側にずらす */
   }
 }
-  
+
   .chat-container {
     padding: 40px 16px;
     max-width: 100%;
@@ -259,8 +259,7 @@ select {
     padding: 16px;
     box-sizing: border-box;
     font-family: inherit;
-  
-    width: 250px;
+    width: 400px;
     transition: all 0.3s ease;
     overflow: hidden;
   }
@@ -346,18 +345,84 @@ select {
     font-weight: 400;
     color: #666;
   }  
+
+  .topic-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
   
-  .delete-button {
-    font-size: 12px;
-    color: #d00;
-    text-decoration: underline;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding-left: 0;
-    font-family: inherit;
+  .topic-icon {
+    font-size: 16px;
+    color: #444;
+  }
+  
+  .topic-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    border-radius: 6px;
+    outline: none;
+    padding: 6px 8px;
   }
 
+  .new-topic-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #192a58;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;   /* 🔸テキスト入力欄との間隔 */
+    margin-top: 12px;      /* 🔸上との余白 */
+  }
+  
+  .new-topic-button:hover {
+    background-color: #e0e7ff;
+    border-color: #94a3b8;
+  }
+  
+  .new-topic-button svg {
+    vertical-align: middle;
+    font-size: 14px;  
+  }
+
+  .delete-button {
+    display: inline-flex;                 /* ボタン中のアイコン＋テキストを横並びに */
+    align-items: center;                 /* 縦位置を中央揃え */
+    justify-content: center;             /* 水平方向も中央に */
+    font-size: 13px;                     /* テキストサイズ */
+    background-color: #fff0f0;           /* ほんのり赤背景 */
+    color: #d00;                         /* 赤い文字 */
+    border: 1px solid #f3bcbc;           /* 赤みのある境界線 */
+    border-radius: 6px;                  /* 角丸 */
+    padding: 6px 10px;                   /* 内側の余白 */
+    cursor: pointer;                     /* マウスカーソルをポインターに */
+    white-space: nowrap;                /* テキストが折り返さないように */
+    transition: background-color 0.2s ease;  /* ホバー時にふんわり変化 */
+  
+    /* ✅ 右に寄せる・サイズ固定したい場合： */
+    margin-left: auto;                  /* 親要素の右端に寄せる */
+    width: auto;                        /* 必要最小限の幅 */
+    max-width: 140px;                   /* 必要であれば最大幅も指定可能 */
+  }
+  
+  .delete-button:hover {
+    background-color: #ffd8d8;
+    color: #a00;
+    border-color: #f2b8b8;
+  }
+  
   .logout-button {
     font-size: 13px;
     padding: 8px 12px;
@@ -400,6 +465,19 @@ select {
     opacity: 0.9;
     z-index: 9999;
   }
+
+  .file-header {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* ← アイコンと文字に少し余白 */
+    margin-bottom: 12px;
+  }
+  
+  .file-icon {
+    font-size: 18px;
+    color: #444;
+  }
+  
 
   .file-drop-area {
     width: 100%;
@@ -549,6 +627,153 @@ select {
   margin-bottom: 4px;
 }
 
+.chat-actions-bar {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 8px;
+  margin-top: 0px;
+}
+
+.action-button {
+  width: 44px;
+  height: 44px;
+  background-color: #f3f3f3;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  font-size: 20px;
+  text-align: center;
+  line-height: 44px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.action-button:hover {
+  background-color: #e4e4e4;
+}
+
+.send-button {
+  width: 44px;
+  height: 44px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 44px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.send-button:hover {
+  background-color: #333;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.file-preview {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.preview-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #222;
+}
+
+.file-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.file-icon svg {
+  font-size: 18px;
+  color: #444;
+}
+
+.preview-content {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #fff;
+  color: #444;
+  font-size: 15px;       /* ← 少し大きく */
+  line-height: 1.8;       /* ← 行間広めに */
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 300px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+
+.preview-image {
+  max-width: 100%;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.preview-audio {
+  width: 100%;
+  margin-top: 12px;
+}
+
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media screen and (max-width: 768px) {
+  .chat-actions-bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    gap: 10px;
+    margin-top: 0px;
+    padding: 0 8px;
+  }
+
+  .action-button,
+  .send-button {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 20px;
+    line-height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
 @media screen and (max-width: 768px) {
   /* 全体を縦並びに切り替え */
   .chat-layout {
@@ -649,4 +874,61 @@ select {
     margin-top: 0;
   }
   
-}
+  .delete-button {
+    display: inline-flex;                 /* ボタン中のアイコン＋テキストを横並びに */
+    align-items: center;                 /* 縦位置を中央揃え */
+    justify-content: center;             /* 水平方向も中央に */
+    font-size: 13px;                     /* テキストサイズ */
+    background-color: #fff0f0;           /* ほんのり赤背景 */
+    color: #d00;                         /* 赤い文字 */
+    border: 1px solid #f3bcbc;           /* 赤みのある境界線 */
+    border-radius: 6px;                  /* 角丸 */
+    padding: 6px 10px;                   /* 内側の余白 */
+    cursor: pointer;                     /* マウスカーソルをポインターに */
+    white-space: nowrap;                /* テキストが折り返さないように */
+    transition: background-color 0.2s ease;  /* ホバー時にふんわり変化 */
+  
+    /* ✅ 右に寄せる・サイズ固定したい場合： */
+    margin-left: auto;                  /* 親要素の右端に寄せる */
+    width: auto;                        /* 必要最小限の幅 */
+    max-width: 40px;                   /* 必要であれば最大幅も指定可能 */
+  }
+  
+
+  .delete-button:hover {
+    background-color: #ffe0e0;
+    color: #a00;
+    border-color: #f2b8b8;
+  }
+
+  .topic-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* ← 横並び＆両端揃え */
+    gap: 8px;
+    width: 100%;
+  }
+
+  .topic-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: #333;
+  }
+  
+  .topic-input {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    min-width: 0;
+  }
+
+  .topic-item {
+    width: 100%;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+  }
+
+  }  

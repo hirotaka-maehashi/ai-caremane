@@ -1,11 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,       // ✅ セッションを永続化
-    autoRefreshToken: true      // ✅ トークンの自動更新も有効に
-  }
-})
+// ✅ 環境変数が読み込まれているか確認（ログ）
+console.log('✅ Supabase URL:', supabaseUrl)
+console.log('✅ Supabase ANON KEY:', supabaseAnonKey)
+
+// ✅ エラーを明示する
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('❌ Supabase URL または ANON KEY が未設定です（.env.localを確認）');
+}
+
+// ✅ Supabaseクライアント生成
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)

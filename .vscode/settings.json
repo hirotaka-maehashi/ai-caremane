@@ -7,5 +7,18 @@
   },
   "tailwindCSS.includeLanguages": {
     "typescriptreact": "html"
-  }
+  },
+  "cSpell.words": [
+  "Soundwave",
+  "supabase",
+  "Supabase",
+  "apiKey",
+  "Syxxxxxxxxxxxxxxxx" // 任意の擬似キー
+],
+"cSpell.ignorePaths": [
+  "**/node_modules/**",
+  "**/dist/**",
+  "src/pages/apikey.tsx",
+  "src/pages/index.tsx"
+]
 }
