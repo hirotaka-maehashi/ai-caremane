@@ -11,3 +11,4 @@ export default function App({ Component, pageProps }: AppProps) {
     </AppProvider>
   );
 }
+// 🔁 デザイン反映確認用ダミーコメント

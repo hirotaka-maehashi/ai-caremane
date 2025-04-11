@@ -35,3 +35,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: 'GPT通信エラー' });
   }
 }
+// 🔁 デザイン反映確認用ダミーコメント

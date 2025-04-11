@@ -36,3 +36,5 @@ export const getCompanyChatHistory = async () => {
 
   return chats
 }
+
+// 🔁 デザイン反映確認用ダミーコメント

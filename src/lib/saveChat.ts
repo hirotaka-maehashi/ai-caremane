@@ -59,3 +59,5 @@ export const saveChat = async ({
     console.log('✅ チャット履歴を保存しました！（法人連携OK）')
   }
 }
+
+// 🔁 デザイン反映確認用ダミーコメント

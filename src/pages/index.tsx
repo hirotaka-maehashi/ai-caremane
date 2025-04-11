@@ -847,4 +847,5 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
       </div>
     </div>
   );
-};   
+}; 
+// 🔁 デザイン反映確認用ダミーコメント

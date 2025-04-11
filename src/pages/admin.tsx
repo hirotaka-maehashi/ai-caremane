@@ -139,3 +139,5 @@ export default function AdminPage() {
     </div>
   )
 }
+
+// 🔁 デザイン反映確認用ダミーコメント

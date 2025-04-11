@@ -37,3 +37,5 @@ export default function ChatHistory({ selectedTopicIndex, historyGroups }: ChatH
     </div>
   );
 }
+
+// 🔁 デザイン反映確認用ダミーコメント

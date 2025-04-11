@@ -32,3 +32,5 @@ export async function callOpenAI(
   // ❗ null 安全に返す
   return chatCompletion.choices?.[0]?.message?.content ?? '';
 }
+
+// 🔁 デザイン反映確認用ダミーコメント

@@ -15,3 +15,5 @@ export const getChatHistory = async (user_id: string) => {
 
   return data
 }
+
+// 🔁 デザイン反映確認用ダミーコメント

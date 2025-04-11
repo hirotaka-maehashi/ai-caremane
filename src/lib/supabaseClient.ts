@@ -14,3 +14,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // ✅ Supabaseクライアント生成
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// 🔁 デザイン反映確認用ダミーコメント
