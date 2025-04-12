@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { callClaude } from '@/lib/claude';
+import { callClaude } from '../../../src/lib/claude';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
