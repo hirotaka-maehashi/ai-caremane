@@ -392,6 +392,8 @@ if (uploadedFileText) {
           data: { session },
           error: sessionError
         } = await supabase.auth.getSession();
+
+        console.log("🟡 Claude送信直前のsession:", session);
       
         if (sessionError || !session?.access_token) {
           alert('認証情報が取得できませんでした');
