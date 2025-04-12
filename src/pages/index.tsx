@@ -252,24 +252,45 @@ const handleCancelNewTopic = () => {
         }
   
         if (provider === 'claude') {
-          const res = await fetch('https://api.anthropic.com/v1/models', {
+          const {
+            data: { session },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+        
+          if (sessionError || !session?.access_token) {
+            alert('認証情報が取得できませんでした');
+            setLoading(false);
+            return;
+          }
+        
+          const res = await fetch('/api/claude-models', {
             headers: {
-              'x-api-key': apiKey,
-              'anthropic-version': '2023-06-01',
+              Authorization: `Bearer ${session.access_token}`,
             },
+            cache: 'no-store',
           });
+        
           const data = await res.json();
-  
-          const ALLOWED_CLAUDE = ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'];
+        
+          if (!data.models || !Array.isArray(data.models)) {
+            console.warn("❗Claudeモデル一覧が取得できませんでした:", data);
+            return;
+          }
+        
+          const ALLOWED_CLAUDE = [
+            'claude-3-opus-20240229',
+            'claude-3-sonnet-20240229',
+          ];
+          
           const filtered = data.models
-            .filter((m: any) => ALLOWED_CLAUDE.includes(m.name))
+            .filter((m: any) => ALLOWED_CLAUDE.includes(m.id))
             .map((m: any) => ({
-              label: m.name,
-              value: m.name,
-            }));
-  
+              label: m.display_name || m.id,
+              value: m.id,
+            }));          
+        
           setModelOptions((prev) => ({ ...prev, claude: filtered }));
-        }
+        }        
   
         if (provider === 'gemini') {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
