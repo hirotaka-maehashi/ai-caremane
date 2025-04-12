@@ -51,3 +51,5 @@ export async function callClaude(
   
     return content;
   }
+
+  // 🧪 強制デプロイ用コメント（Claude API確認）
