@@ -49,20 +49,11 @@ export default function Home() {
   const reversedHistoryGroups = [...historyGroups].reverse();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const modelOptions: Record<string, { label: string; value: string }[]> = {
-    openai: [
-      { label: 'GPT-3.5', value: 'gpt-3.5-turbo' },
-      { label: 'GPT-4', value: 'gpt-4' },
-      { label: 'GPT-4 Turbo', value: 'gpt-4-turbo' },
-    ],
-    claude: [
-      { label: 'Claude 3 Opus', value: 'claude-3-opus-20240229' },
-      { label: 'Claude 3 Sonnet', value: 'claude-3-sonnet-20240229' },
-    ],
-    gemini: [
-      { label: 'Gemini Pro', value: 'gemini-pro' },
-    ],
-  };
+  const [modelOptions, setModelOptions] = useState<Record<string, { label: string; value: string }[]>>({
+    openai: [],
+    claude: [],
+    gemini: [],
+  });  
  
   // 🔧 useState（上部）
 const [isAddingNewTopic, setIsAddingNewTopic] = useState(false);
@@ -239,6 +230,79 @@ const handleCancelNewTopic = () => {
   }, []);
 
   useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        if (!provider || !apiKey) return;
+  
+        if (provider === 'openai') {
+          const res = await fetch('https://api.openai.com/v1/models', {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          const data = await res.json();
+  
+          const ALLOWED_OPENAI = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'];
+          const filtered = data.data
+            .filter((m: any) => ALLOWED_OPENAI.includes(m.id))
+            .map((m: any) => ({
+              label: m.id,
+              value: m.id,
+            }));
+  
+          setModelOptions((prev) => ({ ...prev, openai: filtered }));
+        }
+  
+        if (provider === 'claude') {
+          const res = await fetch('https://api.anthropic.com/v1/models', {
+            headers: {
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+            },
+          });
+          const data = await res.json();
+  
+          const ALLOWED_CLAUDE = ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'];
+          const filtered = data.models
+            .filter((m: any) => ALLOWED_CLAUDE.includes(m.name))
+            .map((m: any) => ({
+              label: m.name,
+              value: m.name,
+            }));
+  
+          setModelOptions((prev) => ({ ...prev, claude: filtered }));
+        }
+  
+        if (provider === 'gemini') {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+          const data = await res.json();
+  
+          const ALLOWED_GEMINI = ['gemini-2.0-pro', 'gemini-2.0-flash'];
+          const filtered = data.models
+            .filter((m: any) => {
+              const name = m.name.replace('models/', '');
+              return ALLOWED_GEMINI.includes(name);
+            })
+            .map((m: any) => ({
+              label: m.displayName || m.name.replace('models/', ''),
+              value: m.name.replace('models/', ''),
+            }));
+  
+          setModelOptions((prev) => ({ ...prev, gemini: filtered }));
+        }
+      } catch (err) {
+        console.error('モデル一覧取得失敗:', err);
+      }
+    };
+  
+    fetchModels();
+  }, [provider, apiKey]);  
+
+  useEffect(() => {
+    if (provider && modelOptions[provider]?.length > 0) {
+      setSelectedModel(modelOptions[provider][0].value);
+    }
+  }, [provider, modelOptions]);  
+
+  useEffect(() => {
     console.log("🚀 useEffect 発動！"); 
     console.log("🚀 checkApiKeyAndCompanyId 発動！");
 
@@ -374,19 +438,39 @@ if (uploadedFileText) {
             
   
       } else if (provider === 'gemini') {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/chat-bison:generateContent?key=${apiKey}`, {
-
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: fullMessage }] }],
-          }),
-        });        
+        const model = selectedModel || 'gemini-pro';
+      
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: fullMessage }] }],
+            }),
+          }
+        );
+      
         const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
-        replyContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        console.log("🧠 Geminiの返答 JSON:", data);
+      
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
+      
+        const candidates = data?.candidates;
+        const parts = candidates?.[0]?.content?.parts;
+      
+        if (!parts || parts.length === 0) {
+          console.warn("⚠️ Geminiの返答が空です。構造:", candidates);
+        }
+      
+        replyContent = parts?.[0]?.text || '（Geminiからの返答がありませんでした）'; // ✅ 修正ポイント！
         setReply(replyContent);
-  
+        console.log("📨 Geminiの返答テキスト:", replyContent);
+           
+
+
       } else if (provider === 'claude') {
         const {
           data: { session },
