@@ -13,8 +13,19 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message)
+      let friendlyMsg = 'ログイン中にエラーが発生しました';
+  
+      if (error.message.includes('Invalid login credentials')) {
+        friendlyMsg = '❌ メールアドレスまたはパスワードが間違っています。';
+      } else if (error.message.includes('Email not confirmed')) {
+        friendlyMsg = '❌ メールアドレスが確認されていません。確認メールをご確認ください。';
+      } else {
+        friendlyMsg = `❌ ログインに失敗しました: ${error.message}`;
+      }
+  
+      setError(friendlyMsg);
     } else {
+  
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
