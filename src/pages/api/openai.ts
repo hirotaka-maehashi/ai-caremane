@@ -27,12 +27,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!keyData?.api_key) return res.status(403).json({ error: 'OpenAI APIキーがありません' });
 
+  // ✅ 使用量チェック開始
+  const { data: limitData } = await supabase
+    .from('user_limits')
+    .select('token_limit')
+    .eq('user_id', user.id)
+    .single();
+
+  const { data: usageData } = await supabase
+    .from('user_usage')
+    .select('used_tokens')
+    .eq('user_id', user.id)
+    .single();
+
+  const usedTokens = usageData?.used_tokens || 0;
+  const maxTokens = limitData?.token_limit || 0;
+
+  if (usedTokens >= maxTokens) {
+    return res.status(403).json({ error: '🚫 使用上限に達しました。月額制限をご確認ください。' });
+  }
+
   try {
-    const reply = await callOpenAI(message, keyData.api_key, industry, model);
+    const { reply, totalTokens } = await callOpenAI(message, keyData.api_key, industry, model);
+
+    // ✅ 使用量を保存（加算）
+    await supabase
+      .from('user_usage')
+      .upsert({
+        user_id: user.id,
+        used_tokens: usedTokens + totalTokens,
+        updated_at: new Date()
+      });
+
     res.status(200).json({ content: reply });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'GPT通信エラー' });
   }
 }
-// 🔁 デザイン反映確認用ダミーコメント

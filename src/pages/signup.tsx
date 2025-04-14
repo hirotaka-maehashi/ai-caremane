@@ -13,14 +13,17 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-    })
-
+    });
+  
     if (error) {
-      setMessage('❌ 登録に失敗しました: ' + error.message)
+      setMessage('❌ 登録に失敗しました: ' + error.message);
     } else {
-      setMessage('✅ 登録に成功しました！メールを確認してください。')
+      setMessage('✅ 登録に成功しました！ログイン画面に移動します...');
+      setTimeout(() => {
+        router.push('/login'); // ✅ 自動遷移を追加
+      }, 2000); // メッセージ表示後に2秒待ってから遷移
     }
-  }
+  };
 
   return (
     <div className="signup-container">

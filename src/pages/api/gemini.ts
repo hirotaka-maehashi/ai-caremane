@@ -1,4 +1,4 @@
-// src/pages/api/gemini.ts
+// /src/pages/api/gemini.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { callGeminiAPI } from '../../lib/gemini';
@@ -27,13 +27,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!keyData?.api_key) return res.status(403).json({ error: 'Gemini APIキーがありません' });
 
+  // ✅ 使用量チェック開始
+  const { data: limitData } = await supabase
+    .from('user_limits')
+    .select('token_limit')
+    .eq('user_id', user.id)
+    .single();
+
+  const { data: usageData } = await supabase
+    .from('user_usage')
+    .select('used_tokens')
+    .eq('user_id', user.id)
+    .single();
+
+  const usedTokens = usageData?.used_tokens || 0;
+  const maxTokens = limitData?.token_limit || 0;
+
+  if (usedTokens >= maxTokens) {
+    return res.status(403).json({ error: '🚫 使用上限に達しました。月額制限をご確認ください。' });
+  }
+
   try {
-    const reply = await callGeminiAPI({
+    const { reply, totalTokens } = await callGeminiAPI({
       prompt: message,
       apiKey: keyData.api_key,
       model,
-      industry,
+      industry
     });
+
+    await supabase
+      .from('user_usage')
+      .upsert({
+        user_id: user.id,
+        used_tokens: usedTokens + totalTokens,
+        updated_at: new Date()
+      });
+
     res.status(200).json({ content: reply });
   } catch (err) {
     console.error(err);

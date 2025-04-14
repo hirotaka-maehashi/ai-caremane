@@ -48,6 +48,14 @@ export default function Home() {
   const [userCompanyId, setUserCompanyId] = useState<string | null>(null);
   const reversedHistoryGroups = [...historyGroups].reverse();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  // 🎙️ 録音関係の state をここに追加！
+const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+const [isRecording, setIsRecording] = useState(false);
+const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+const [userBudget, setUserBudget] = useState<number>(3000); // 月額希望（円）
+const [monthlyTokenLimit, setMonthlyTokenLimit] = useState<number>(3000000); // トークン上限（3,000円なら300万）
+const [dailyTokenLimit, setDailyTokenLimit] = useState<number>(100000); // 1日あたりの目安
+const pricePer1K = 1; // gpt-3.5-turbo の単価（円／1000トークン）
 
   const [modelOptions, setModelOptions] = useState<Record<string, { label: string; value: string }[]>>({
     openai: [],
@@ -83,6 +91,28 @@ const handleCancelNewTopic = () => {
     setUploadedFileName(file.name);
   
     handleUploadedFile(file); // ← handleFileDrop の代わりに、共通処理に渡す！
+  };  
+
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = mediaRecorder;
+  
+    const chunks: Blob[] = [];
+  
+    mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      setAudioBlob(blob);
+    };
+  
+    mediaRecorder.start();
+    setIsRecording(true);
+  };
+  
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
   };  
 
   useEffect(() => {
@@ -221,9 +251,15 @@ const handleCancelNewTopic = () => {
     }
   }, [industry, freeMode]);
 
+  
+
   useEffect(() => {
     console.log('✅ 選択中モデル:', selectedModel);
   }, [selectedModel]);  
+
+  useEffect(() => {
+    console.log("📊 現在のモデルオプション:", modelOptions);
+  }, [modelOptions]);  
 
   useEffect(() => {
     // SupabaseからAPIキー取得
@@ -322,6 +358,53 @@ const handleCancelNewTopic = () => {
       setSelectedModel(modelOptions[provider][0].value);
     }
   }, [provider, modelOptions]);  
+  
+  useEffect(() => {
+    if (!audioBlob) return;
+  
+    const sendAudioToGemini = async () => {
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'voice.webm');
+  
+      const res = await fetch('/api/gemini-audio', {
+        method: 'POST',
+        body: formData,
+      });
+  
+      const data = await res.json();
+  
+      if (data.summary) {
+        setReply(data.summary);
+  
+        setHistoryGroups((prev) => {
+          const newEntry = {
+            user: '🎙️ 録音メッセージ（音声）',
+            ai: data.summary,
+          };
+  
+          if (selectedTopicIndex === null) {
+            const newGroup = {
+              topic: '録音メッセージ',
+              history: [newEntry],
+            };
+            const newGroups = [...prev, newGroup];
+            setSelectedTopicIndex(newGroups.length - 1);
+            return newGroups;
+          } else {
+            return prev.map((group, index) =>
+              index === selectedTopicIndex
+                ? { ...group, history: [...group.history, newEntry] }
+                : group
+            );
+          }
+        });
+      } else {
+        setReply('❗要約に失敗しました');
+      }
+    };
+  
+    sendAudioToGemini();
+  }, [audioBlob]);  
 
   useEffect(() => {
     console.log("🚀 useEffect 発動！"); 
@@ -767,6 +850,52 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
         ≡
       </button>
 
+      <div className="form-group">
+  <label>💰 月額上限（円）を設定してください：</label>
+  <input
+    type="number"
+    value={userBudget}
+    onChange={(e) => {
+      const newBudget = Number(e.target.value);
+      setUserBudget(newBudget);
+
+      const calculatedTokenLimit = Math.floor((newBudget / pricePer1K) * 1000);
+      setMonthlyTokenLimit(calculatedTokenLimit);
+      setDailyTokenLimit(Math.floor(calculatedTokenLimit / 30));
+    }}
+    placeholder="例：3000"
+    min={0}
+    className="budget-input"
+  />
+  <p>📊 月間トークン上限：<strong>{monthlyTokenLimit.toLocaleString()}</strong> トークン</p>
+  <p>📆 1日あたりの目安：<strong>{dailyTokenLimit.toLocaleString()}</strong> トークン（約 {Math.floor(dailyTokenLimit * pricePer1K / 1000)} 円）</p>
+</div>
+
+<button
+    onClick={async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        alert("ログイン情報が確認できませんでした");
+        return;
+      }
+
+      const { error: upsertError } = await supabase.from('user_limits').upsert({
+        user_id: user.id,
+        monthly_budget_yen: userBudget,
+        token_limit: monthlyTokenLimit,
+        updated_at: new Date()
+      });
+
+      if (upsertError) {
+        alert("保存に失敗しました");
+      } else {
+        alert("上限情報を保存しました！");
+      }
+    }}
+  >
+    保存する
+  </button>
+
     <div className="form-group">
       <label>モデルを選んでください：</label>
       <select
@@ -841,9 +970,13 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
     style={{ display: 'none' }}
     onChange={handleFileUpload}
   />
-  <button className="action-button">
-    <FiMic size={20} />
-  </button>
+<button
+  className="action-button"
+  onClick={isRecording ? stopRecording : startRecording}
+  style={{ color: isRecording ? 'red' : undefined }}
+>
+  {isRecording ? '■' : <FiMic size={20} />}
+</button>
 
   <button className="action-button">
     <BsSoundwave size={20} />

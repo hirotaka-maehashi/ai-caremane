@@ -15,7 +15,7 @@ export async function callOpenAI(
   apiKey: string,
   industry: string,
   model: string
-): Promise<string> {
+): Promise<{ reply: string; totalTokens: number }> {
   const openai = new OpenAI({ apiKey });
 
   const systemMessage =
@@ -29,8 +29,8 @@ export async function callOpenAI(
     ],
   });
 
-  // ❗ null 安全に返す
-  return chatCompletion.choices?.[0]?.message?.content ?? '';
+  return {
+    reply: chatCompletion.choices?.[0]?.message?.content ?? '',
+    totalTokens: chatCompletion.usage?.total_tokens || 0,
+  };
 }
-
-// 🔁 デザイン反映確認用ダミーコメント

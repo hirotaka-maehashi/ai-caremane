@@ -8,7 +8,6 @@ const supabase = createClient(
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -31,9 +30,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!keyData?.api_key) return res.status(403).json({ error: 'Claude APIキーが見つかりません' });
 
+  // ✅ 使用量チェック開始
+  const { data: limitData } = await supabase
+    .from('user_limits')
+    .select('token_limit')
+    .eq('user_id', user.id)
+    .single();
+
+  const { data: usageData } = await supabase
+    .from('user_usage')
+    .select('used_tokens')
+    .eq('user_id', user.id)
+    .single();
+
+  const usedTokens = usageData?.used_tokens || 0;
+  const maxTokens = limitData?.token_limit || 0;
+
+  if (usedTokens >= maxTokens) {
+    return res.status(403).json({ error: '🚫 使用上限に達しました。月額制限をご確認ください。' });
+  }
+
   try {
-    const content = await callClaude(keyData.api_key, model, industry, message);
-    res.status(200).json({ content });
+    const { reply, totalTokens } = await callClaude(keyData.api_key, model, industry, message);
+
+    await supabase
+      .from('user_usage')
+      .upsert({
+        user_id: user.id,
+        used_tokens: usedTokens + totalTokens,
+        updated_at: new Date()
+      });
+
+    res.status(200).json({ content: reply });
   } catch (err) {
     console.error('Claude APIエラー:', err);
     res.status(500).json({ error: 'Claude APIエラーが発生しました' });
