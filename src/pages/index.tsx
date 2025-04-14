@@ -891,6 +891,7 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
         }
 
         const { error: upsertError } = await supabase.from('user_limits').upsert({
+          id: user.id,
           user_id: user.id,
           monthly_budget_yen: userBudget,
           token_limit: monthlyTokenLimit,
