@@ -118,6 +118,9 @@ const handleCancelNewTopic = () => {
   useEffect(() => {
     const checkApiKeyAndCompanyId = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
+
+      console.log('🧪 現在のログインユーザーID:', user?.id);
+
       if (error || !user) {
         console.warn('⚠️ 未ログイン状態なので /login に遷移');
         router.push('/login');
@@ -280,9 +283,9 @@ const handleCancelNewTopic = () => {
           const filtered = data.data
             .filter((m: any) => ALLOWED_OPENAI.includes(m.id))
             .map((m: any) => ({
-              label: m.id,
+              label: m.id === 'gpt-3.5-turbo' ? 'gpt-3.5-turbo（推奨）' : m.id,
               value: m.id,
-            }));
+            }));            
   
           setModelOptions((prev) => ({ ...prev, openai: filtered }));
         }
@@ -511,13 +514,11 @@ if (uploadedFileText) {
       let replyContent = ''; // ← 共通で使えるようにする！
   
       if (provider === 'openai') {
-        const {
-          data: { session },
-          error: sessionError
-        } = await supabase.auth.getSession();
+        const tokenRes = await supabase.auth.getSession();
+        const accessToken = tokenRes?.data?.session?.access_token;
       
-        if (sessionError || !session?.access_token) {
-          alert('認証情報が取得できませんでした');
+        if (!accessToken) {
+          alert('認証トークンが取得できませんでした');
           setLoading(false);
           return;
         }
@@ -526,20 +527,20 @@ if (uploadedFileText) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`, // ← Supabaseのトークンを送信
+            Authorization: `Bearer ${accessToken}`, // ← ✅ 修正ポイント
           },
           body: JSON.stringify({
-            message: prompt,            // 全文（テンプレート + 入力）
-            industry,                   // 業種（systemメッセージとして渡す）
-            model: selectedModel,       // GPT-3.5 or GPT-4など
+            message: prompt,
+            industry,
+            model: selectedModel,
           }),
         });
       
         const data = await res.json();
         if (data.error) throw new Error(data.error);
         replyContent = data.content;
-        setReply(replyContent);
-            
+        setReply(replyContent);      
+    
   
       } else if (provider === 'gemini') {
         const model = selectedModel || 'gemini-pro';
@@ -573,8 +574,7 @@ if (uploadedFileText) {
         setReply(replyContent);
         console.log("📨 Geminiの返答テキスト:", replyContent);
            
-
-
+        
       } else if (provider === 'claude') {
         const {
           data: { session },
@@ -851,8 +851,12 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
       </button>
 
       <div className="form-group">
-  <label>💰 月額上限（円）を設定してください：</label>
+  <label htmlFor="budgetInput" className="form-label">
+    月額上限（円）
+  </label>
+
   <input
+    id="budgetInput"
     type="number"
     value={userBudget}
     onChange={(e) => {
@@ -867,34 +871,43 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
     min={0}
     className="budget-input"
   />
-  <p>📊 月間トークン上限：<strong>{monthlyTokenLimit.toLocaleString()}</strong> トークン</p>
-  <p>📆 1日あたりの目安：<strong>{dailyTokenLimit.toLocaleString()}</strong> トークン（約 {Math.floor(dailyTokenLimit * pricePer1K / 1000)} 円）</p>
+
+<p className="form-subtext">
+  上限：<strong>{monthlyTokenLimit.toLocaleString()}</strong> トークン（1日：約 <strong>{dailyTokenLimit.toLocaleString()}</strong> トークン）
+</p>
+
+
+  <p className="form-hint">※上限を入力し、「保存」を押してください。</p>
+
+  <div className="button-row">
+    <button
+      type="button"
+      className="save-button"
+      onClick={async () => {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          alert("ログイン情報が確認できませんでした");
+          return;
+        }
+
+        const { error: upsertError } = await supabase.from('user_limits').upsert({
+          user_id: user.id,
+          monthly_budget_yen: userBudget,
+          token_limit: monthlyTokenLimit,
+          updated_at: new Date()
+        });
+
+        if (upsertError) {
+          alert("保存に失敗しました");
+        } else {
+          alert("✅ 上限情報を保存しました！");
+        }
+      }}
+    >
+      保存
+    </button>
+  </div>
 </div>
-
-<button
-    onClick={async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        alert("ログイン情報が確認できませんでした");
-        return;
-      }
-
-      const { error: upsertError } = await supabase.from('user_limits').upsert({
-        user_id: user.id,
-        monthly_budget_yen: userBudget,
-        token_limit: monthlyTokenLimit,
-        updated_at: new Date()
-      });
-
-      if (upsertError) {
-        alert("保存に失敗しました");
-      } else {
-        alert("上限情報を保存しました！");
-      }
-    }}
-  >
-    保存する
-  </button>
 
     <div className="form-group">
       <label>モデルを選んでください：</label>
