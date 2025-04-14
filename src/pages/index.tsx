@@ -115,6 +115,11 @@ const handleCancelNewTopic = () => {
     setIsRecording(false);
   };  
 
+  const formatAsMan = (value: number) => {
+    if (value >= 10000) return (value / 10000).toFixed(1) + '万';
+    return value.toLocaleString();
+  };  
+
   useEffect(() => {
     const checkApiKeyAndCompanyId = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -775,6 +780,12 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
     }
   }, []);  
 
+const formattedMonthly = formatAsMan(monthlyTokenLimit);  // 例: '300万'
+const formattedDaily = formatAsMan(dailyTokenLimit);      // 例: '10.0万'
+const dailyYen = Math.floor(userBudget / 30);             // 例: 100円
+
+const limitText = `上限：${formattedMonthly}トークン（約${userBudget.toLocaleString()}円）｜1日：${formattedDaily}トークン（約${dailyYen}円）`;
+
   return (
     <div className="chat-layout">
   
@@ -872,10 +883,7 @@ else if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
     className="budget-input"
   />
 
-<p className="form-subtext">
-  上限：<strong>{monthlyTokenLimit.toLocaleString()}</strong> トークン（1日：約 <strong>{dailyTokenLimit.toLocaleString()}</strong> トークン）
-</p>
-
+<p className="form-subtext">{limitText}</p>
 
   <p className="form-hint">※上限を入力し、「保存」を押してください。</p>
 
