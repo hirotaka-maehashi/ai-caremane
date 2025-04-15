@@ -652,20 +652,20 @@ if (uploadedFileText) {
            
         
       } else if (provider === 'claude') {
-        const {
-          data: { session },
-          error: sessionError
-        } = await supabase.auth.getSession();
-
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        const session = data?.session;
+      
         console.log("🟡 Claude送信直前のsession:", session);
+        console.log("🎯 Claude access_token:", session?.access_token);
       
         if (sessionError || !session?.access_token) {
-          alert('認証情報が取得できませんでした');
+          alert('認証トークンが取得できませんでした（Claude）');
           setLoading(false);
           return;
         }
       
         console.log('🎯 Claudeに送るモデル:', selectedModel);
+      
         const res = await fetch('/api/claude', {
           method: 'POST',
           headers: {
@@ -675,13 +675,13 @@ if (uploadedFileText) {
           body: JSON.stringify({
             message: fullMessage,
             model: selectedModel,
-            industry, // ✅ これを追加！
+            industry,
           }),
         });
       
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        replyContent = data.content;
+        const response = await res.json(); // ← 修正ポイント！
+        if (response.error) throw new Error(response.error);
+        replyContent = response.content;
         setReply(replyContent);
       }      
   
