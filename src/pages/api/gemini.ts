@@ -1,4 +1,3 @@
-// /src/pages/api/gemini.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { callGeminiAPI } from '../../lib/gemini';
@@ -15,6 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) return res.status(401).json({ error: 'Invalid token' });
 
+  console.log(`✅ ユーザー認証成功: ${user.id}`);
+
   const { message, industry, model = 'gemini-pro' } = req.body;
   if (!message || !industry) return res.status(400).json({ error: 'Missing message or industry' });
 
@@ -25,9 +26,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .eq('provider', 'gemini')
     .single();
 
-  if (!keyData?.api_key) return res.status(403).json({ error: 'Gemini APIキーがありません' });
+  if (!keyData?.api_key) {
+    console.error('❌ Gemini APIキーがありません');
+    return res.status(403).json({ error: 'Gemini APIキーがありません' });
+  }
 
-  // ✅ 使用量チェック開始
   const { data: limitData } = await supabase
     .from('user_limits')
     .select('token_limit')
@@ -43,17 +46,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const usedTokens = usageData?.used_tokens || 0;
   const maxTokens = limitData?.token_limit || 0;
 
+  console.log(`📊 Gemini使用状況: 使用済み ${usedTokens} / 上限 ${maxTokens}`);
+
   if (usedTokens >= maxTokens) {
+    console.warn('🚫 トークン上限超過');
     return res.status(403).json({ error: '🚫 使用上限に達しました。月額制限をご確認ください。' });
   }
 
   try {
+    console.log('📨 Gemini呼び出し開始');
+    const start = Date.now();
+
     const { reply, totalTokens } = await callGeminiAPI({
       prompt: message,
       apiKey: keyData.api_key,
       model,
       industry
     });
+
+    const end = Date.now();
+    const duration = ((end - start) / 1000).toFixed(2);
+    console.log(`✅ Gemini呼び出し成功, トークン数: ${totalTokens}, 所要時間: ${duration} 秒`);
 
     await supabase
       .from('user_usage')
@@ -65,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ content: reply });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Gemini通信エラー:', err);
     res.status(500).json({ error: 'Gemini通信エラー' });
   }
 }
