@@ -56,8 +56,11 @@ export async function callGeminiAPI({
       data?.candidates?.[0]?.content?.parts?.[0]?.text ??
       '（Geminiからの返答がありませんでした）';
 
-    // ✅ トークン概算：1トークン ≒ 日本語1文字（±10%程度の安全ライン）
-    const estimatedTokens = (systemMessage.length + prompt.length + reply.length);
+    // ✅ トークン概算（日本語なら約4文字 ≒ 1トークン）
+    const estimatedTokens = Math.ceil((systemMessage.length + prompt.length + reply.length) / 4);
+
+    console.log('🧠 Geminiの返答:', reply);
+    console.log('📏 推定トークン数:', estimatedTokens);
 
     return {
       reply,
