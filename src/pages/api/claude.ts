@@ -2,11 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { callClaude } from '../../lib/claude';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -15,7 +10,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'No token provided' });
 
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  // ✅ トークン付きでSupabaseクライアントを初期化
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    }
+  );
+
+  const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return res.status(401).json({ error: 'Invalid token' });
 
   console.log(`✅ ユーザー認証成功: ${user.id}`);
