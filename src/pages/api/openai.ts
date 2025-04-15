@@ -81,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const end = Date.now(); // ← 終了時刻を記録
     const duration = ((end - start) / 1000).toFixed(2); // 秒単位で表示
-    console.log(`✅ OpenAI呼び出し成功、使用トークン数: ${totalTokens}`);
+    console.log(`✅ OpenAI呼び出し成功、使用トークン数: ${totalTokens}, 所要時間: ${duration} 秒`);
 
     await supabase
       .from('user_usage')
