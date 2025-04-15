@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useUser } from '@supabase/auth-helpers-react';
 //import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 //import { GlobalWorkerOptions, version } from 'pdfjs-dist';
 //GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
@@ -56,6 +57,8 @@ const [userBudget, setUserBudget] = useState<number>(3000); // 月額希望（�
 const [monthlyTokenLimit, setMonthlyTokenLimit] = useState<number>(3000000); // トークン上限（3,000円なら300万）
 const [dailyTokenLimit, setDailyTokenLimit] = useState<number>(100000); // 1日あたりの目安
 const pricePer1K = 1; // gpt-3.5-turbo の単価（円／1000トークン）
+const user = useUser();
+
 
   const [modelOptions, setModelOptions] = useState<Record<string, { label: string; value: string }[]>>({
     openai: [],
@@ -241,15 +244,21 @@ const handleCancelNewTopic = () => {
   const promptOptions = freeMode ? [''] : promptTemplatesByIndustry[industry] || [''];
 
   useEffect(() => {
-    const saved = localStorage.getItem('chat-history');
+    if (!user || !user.id) return;
+  
+    const key = `chat-history-${user.id}`;
+    const saved = localStorage.getItem(key);
     if (saved) {
       setHistoryGroups(JSON.parse(saved));
     }
-  }, []);
+  }, [user]);  
 
   useEffect(() => {
-    localStorage.setItem('chat-history', JSON.stringify(historyGroups));
-  }, [historyGroups]);
+    if (!user || !user.id) return;
+  
+    const key = `chat-history-${user.id}`;
+    localStorage.setItem(key, JSON.stringify(historyGroups));
+  }, [historyGroups, user]);  
 
   useEffect(() => {
     setInput('');

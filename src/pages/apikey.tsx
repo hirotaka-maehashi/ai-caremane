@@ -42,48 +42,64 @@ export default function ApiKeyPage() {
       alert("法人名（会社名）を入力してください")
       return
     }
-
+  
     if (!apiKey.trim()) {
       alert("APIキーを入力してください（Claude含む、初回登録時は必須）")
       return
-    }    
-
+    }
+  
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (!user || userError) {
       console.error('❌ ユーザー取得失敗:', userError)
       return
     }
-
-    const { data: companyData, error: companyError } = await supabase
+  
+    // ✅ 会社名が既に登録されているかチェック
+    let companyId = ''
+    const { data: existingCompany, error: selectError } = await supabase
       .from('companies')
-      .upsert({ name: clientName }) // nameが一意と仮定
       .select('id')
+      .eq('name', clientName)
       .single()
-
-    if (companyError || !companyData?.id) {
-      console.error("❌ 会社の登録または取得に失敗:", companyError)
-      alert("法人名の登録に失敗しました")
-      return
+  
+    if (existingCompany?.id) {
+      companyId = existingCompany.id
+    } else {
+      const { data: newCompany, error: insertError } = await supabase
+        .from('companies')
+        .insert({ name: clientName })
+        .select()
+        .single()
+  
+      if (insertError || !newCompany) {
+        console.error("❌ 会社の登録に失敗:", insertError)
+        alert("法人名の登録に失敗しました")
+        return
+      }
+  
+      companyId = newCompany.id
     }
-
+  
+    // ✅ user_profiles に company_id を保存
     const { error: profileError } = await supabase
       .from('user_profiles')
-      .upsert({ id: user.id, company_id: companyData.id })
-
+      .upsert({ id: user.id, company_id: companyId })
+  
     if (profileError) {
       console.error("❌ ユーザーの company_id 紐付けに失敗:", profileError)
       alert("ユーザー情報の更新に失敗しました")
       return
     }
-
-    const { error } = await supabase
+  
+    // ✅ APIキー情報を保存
+    const { error: keySaveError } = await supabase
       .from('user_api_keys')
       .upsert(
         [
           {
             user_id: user.id,
             provider,
-            api_key: apiKey, // ← Claudeでも正しく保存されるようになる！
+            api_key: apiKey,
             client_name: clientName,
           }
         ],
@@ -91,16 +107,16 @@ export default function ApiKeyPage() {
           onConflict: 'user_id,provider'
         }
       )
-
-    if (!error) {
+  
+    if (!keySaveError) {
       setSaved(true)
       setApiKey('')
       router.push('/')
     } else {
-      console.error('❌ Supabase保存エラー:', error)
+      console.error('❌ Supabase保存エラー:', keySaveError)
       alert('保存中にエラーが発生しました')
     }
-  }
+  }  
 
   const placeholderMap: Record<string, string> = {
     openai: 'sk-xxxxxxxxxxxx',
