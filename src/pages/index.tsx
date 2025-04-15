@@ -304,15 +304,32 @@ const handleCancelNewTopic = () => {
   }, [industry, freeMode]);
 
   const [isUsageReady, setIsUsageReady] = useState(false);
+
   useEffect(() => {
     const fetchTokenUsage = async () => {
-      setIsUsageReady(false); // 取得前にfalseにしておく
-      // 本番ならここでSupabaseからfetch
-      setUsedTokenCount(2700000); // ← 仮のテスト用
-      setIsUsageReady(true); // ← データ取得完了！
+      setIsUsageReady(false);
+  
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (!user || error) return;
+  
+      const [{ data: usageData }, { data: limitData }] = await Promise.all([
+        supabase.from('user_usage').select('used_tokens').eq('user_id', user.id).single(),
+        supabase.from('user_limits').select('token_limit').eq('user_id', user.id).single(),
+      ]);
+  
+      if (usageData?.used_tokens !== undefined) {
+        setUsedTokenCount(usageData.used_tokens);
+      }
+  
+      if (limitData?.token_limit !== undefined) {
+        setMonthlyTokenLimit(limitData.token_limit);
+      }
+  
+      setIsUsageReady(true);
     };
+  
     fetchTokenUsage();
-  }, []);
+  }, []);  
   
 
   useEffect(() => {
