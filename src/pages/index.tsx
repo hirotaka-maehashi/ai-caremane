@@ -58,7 +58,21 @@ const [monthlyTokenLimit, setMonthlyTokenLimit] = useState<number>(3000000); // 
 const [dailyTokenLimit, setDailyTokenLimit] = useState<number>(100000); // 1日あたりの目安
 const pricePer1K = 1; // gpt-3.5-turbo の単価（円／1000トークン）
 const user = useUser();
-
+const [usedTokenCount, setUsedTokenCount] = useState<number>(0);
+const remainingTokens = monthlyTokenLimit - usedTokenCount;
+const remainingYen = Math.floor(remainingTokens / 1000);
+const remainingMan = (remainingTokens / 10000).toFixed(1); // 万トークン表示
+const isLow = remainingTokens < 20000;
+const usagePercent = Math.min(100, Math.floor((usedTokenCount / monthlyTokenLimit) * 100));
+const usedMan = (usedTokenCount / 10000).toFixed(1);
+const totalMan = (monthlyTokenLimit / 10000).toFixed(1);
+// ✅ 使用率に応じてバーの色を変える
+let barColor = "#4f46e5"; // 通常：青
+if (usagePercent >= 90) {
+  barColor = "#ef4444"; // 赤
+} else if (usagePercent >= 70) {
+  barColor = "#facc15"; // 黄
+}
 
   const [modelOptions, setModelOptions] = useState<Record<string, { label: string; value: string }[]>>({
     openai: [],
@@ -244,6 +258,27 @@ const handleCancelNewTopic = () => {
   const promptOptions = freeMode ? [''] : promptTemplatesByIndustry[industry] || [''];
 
   useEffect(() => {
+    const fetchTokenUsage = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (!user || error) return;
+  
+      const [{ data: usageData }, { data: limitData }] = await Promise.all([
+        supabase.from('user_usage').select('used_tokens').eq('user_id', user.id).single(),
+        supabase.from('user_limits').select('token_limit').eq('user_id', user.id).single(),
+      ]);
+  
+      if (usageData?.used_tokens !== undefined) {
+        setUsedTokenCount(usageData.used_tokens);
+      }
+      if (limitData?.token_limit !== undefined) {
+        setMonthlyTokenLimit(limitData.token_limit);
+      }
+    };
+  
+    fetchTokenUsage();
+  }, []);  
+
+  useEffect(() => {
     if (!user || !user.id) return;
   
     const key = `chat-history-${user.id}`;
@@ -268,6 +303,16 @@ const handleCancelNewTopic = () => {
     }
   }, [industry, freeMode]);
 
+  const [isUsageReady, setIsUsageReady] = useState(false);
+  useEffect(() => {
+    const fetchTokenUsage = async () => {
+      setIsUsageReady(false); // 取得前にfalseにしておく
+      // 本番ならここでSupabaseからfetch
+      setUsedTokenCount(2700000); // ← 仮のテスト用
+      setIsUsageReady(true); // ← データ取得完了！
+    };
+    fetchTokenUsage();
+  }, []);
   
 
   useEffect(() => {
@@ -875,6 +920,10 @@ const limitText = `上限：${formattedMonthly}トークン（約${userBudget.to
     月額上限（円）
   </label>
 
+  <p className={`token-usage-info ${isLow ? 'token-usage-warning' : ''}`}>
+  残り：{remainingMan}万トークン（約{remainingYen.toLocaleString()}円）
+</p>
+
   <input
     id="budgetInput"
     type="number"
@@ -893,6 +942,18 @@ const limitText = `上限：${formattedMonthly}トークン（約${userBudget.to
   />
 
 <p className="form-subtext">{limitText}</p>
+
+{/* ✅ トークン使用量の進捗バー */}
+{isUsageReady && (
+  <>
+    <div className="token-progress-bar">
+      <div className="progress-fill" style={{ width: `${usagePercent}%`, backgroundColor: barColor }} />
+    </div>
+    <p className="progress-text">
+      {usedMan}万 / {totalMan}万トークン使用（{usagePercent}%）
+    </p>
+  </>
+)}
 
   <p className="form-hint">※上限を入力し、「保存」を押してください。</p>
 

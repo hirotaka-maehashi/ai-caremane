@@ -438,6 +438,44 @@ select {
   background-color: #f3f4f6;
 }
 
+.token-usage-info {
+  width: 200px;
+  font-size: 0.65rem;
+  color: #555;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  display: inline-block;
+}
+
+.token-usage-warning {
+  color: #b91c1c;
+  font-weight: bold;
+}
+
+.token-progress-bar {
+  width: 100%;
+  max-width: 200px; /* 👈 ここで幅を制限 */
+  height: 12px;
+  background-color: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #4f46e5;
+  transition: width 0.3s ease-in-out;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: #444;
+  margin-top: 4px;
+  max-width: 200px; /* 👈 テキストも揃える */
+}
+
   
   .chat-history-display {
     flex: 1;
