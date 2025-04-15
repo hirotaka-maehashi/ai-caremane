@@ -657,6 +657,7 @@ if (uploadedFileText) {
       
         console.log("🟡 Claude送信直前のsession:", session);
         console.log("🎯 Claude access_token:", session?.access_token);
+        console.log("🧮 Claude送信時の token_limit:", monthlyTokenLimit);
       
         if (sessionError || !session?.access_token) {
           alert('認証トークンが取得できませんでした（Claude）');
