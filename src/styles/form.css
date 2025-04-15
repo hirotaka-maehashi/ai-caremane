@@ -465,8 +465,9 @@ select {
 
 .progress-fill {
   height: 100%;
-  background-color: #4f46e5;
   transition: width 0.3s ease-in-out;
+  max-width: 100%;
+  min-width: 2px; /* 👈 最低でも細く出す */
 }
 
 .progress-text {
