@@ -1,4 +1,3 @@
-// /src/lib/claude.ts
 export async function callClaude(
   apiKey: string,
   model: string,
@@ -28,9 +27,7 @@ export async function callClaude(
       model,
       system: systemMessage,
       max_tokens: 1024,
-      messages: [
-        { role: 'user', content: userMessage },
-      ],
+      messages: [{ role: 'user', content: userMessage }],
     }),
   });
 
@@ -43,9 +40,15 @@ export async function callClaude(
     data?.message?.content?.[0]?.text ||
     JSON.stringify(data);
 
-  const inputTokens = data?.usage?.input_tokens || 0;
-  const outputTokens = data?.usage?.output_tokens || 0;
-  const totalTokens = inputTokens + outputTokens;
+  // トークン数取得（安全性重視）
+  let inputTokens = data?.usage?.input_tokens || 0;
+  let outputTokens = data?.usage?.output_tokens || 0;
+  let totalTokens = inputTokens + outputTokens;
+
+  if (!totalTokens || isNaN(totalTokens)) {
+    totalTokens = Math.ceil((content?.length || 0) / 4); // 推定値（Claudeには確定トークン数なしのケースもある）
+    console.warn('⚠️ Claude APIの usage 情報が無かったため、トークン数を推定:', totalTokens);
+  }
 
   return {
     reply: content,
