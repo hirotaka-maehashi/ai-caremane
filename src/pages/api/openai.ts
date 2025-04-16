@@ -78,18 +78,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const start = Date.now(); // ← 開始時刻を記録
 
     const { reply, totalTokens } = await callOpenAI(message, keyData.api_key, industry, model);
-
+    console.log("🧮 保存前 user_id:", user.id);
+    console.log("🧮 保存前 usedTokens:", usedTokens, "+", totalTokens);    
     const end = Date.now(); // ← 終了時刻を記録
     const duration = ((end - start) / 1000).toFixed(2); // 秒単位で表示
     console.log(`✅ OpenAI呼び出し成功、使用トークン数: ${totalTokens}, 所要時間: ${duration} 秒`);
 
     await supabase
-      .from('user_usage')
-      .upsert({
-        user_id: user.id,
-        used_tokens: usedTokens + totalTokens,
-        updated_at: new Date()
-      });
+  .from('user_usage')
+  .upsert(
+    {
+      user_id: user.id,
+      used_tokens: usedTokens + totalTokens,
+      updated_at: new Date()
+    },
+    { onConflict: 'user_id' } // ← ここを追加するのが超重要！
+  );
 
     res.status(200).json({ content: reply });
   } catch (err) {
